@@ -177,14 +177,11 @@ def signup(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Create user profile
-            UserProfile.objects.create(user=user)
-            # Login the user
-            username = form.cleaned_data.get('username')
-            raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)
-            return redirect('home')
+            login(request, user) # ใช้ user object ที่ได้จาก form.save() โดยตรง
+
+            # Redirect ไปยังหน้าโปรไฟล์ผีเสื้อ (ถ้ามี) หรือหน้า home
+            # return redirect('name_of_butterfly_quiz_url') # <--- เปลี่ยนเป็น URL ของหน้า Quiz
+            return redirect('home') # หรือถ้ายังไม่มีหน้า Quiz ก็ไป home ก่อน
     else:
         form = UserCreationForm()
     return render(request, 'myapp/signup.html', {'form': form})

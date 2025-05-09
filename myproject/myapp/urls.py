@@ -1,7 +1,7 @@
-from myapp import views
-from django.contrib.auth import views as auth_views
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from . import views # ใช้ from . import views ถ้าไฟล์นี้อยู่ใน myapp
+from django.contrib.auth import views as auth_views
 
 # Create router and register viewsets
 router = DefaultRouter()
@@ -33,4 +33,3 @@ urlpatterns = [
     # API URLs
     path('api/', include(router.urls)),
 ]
-
