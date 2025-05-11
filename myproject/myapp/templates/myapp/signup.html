@@ -1,58 +1,94 @@
 {% extends 'myapp/base.html' %}
 
-{% block title %}สมัครสมาชิก - MeetUp{% endblock %}
+{% block title %}สร้างบัญชีใหม่ - Chum-Chon Link{% endblock %} {# อัปเดต Title ให้สอดคล้อง #}
 
 {% block content %}
-<section class="py-10">
-    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">สมัครสมาชิก</h1>
+<section class="py-10 bg-gray-50"> {# เพิ่มสีพื้นหลังให้ section และปรับ padding #}
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-xl p-6 sm:p-8"> {# ปรับ styling ของ card #}
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-purple-700">สร้างบัญชีผู้ใช้ใหม่</h1>
+            <p class="text-gray-600 mt-2">เข้าร่วมชุมชนของเราและเริ่มค้นหากิจกรรมที่ใช่สำหรับคุณ!</p>
+        </div>
         
-        <form method="post">
+        <form method="post" class="space-y-6"> {# เพิ่ม space-y-6 ให้ form มีระยะห่าง #}
             {% csrf_token %}
-            
+
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            {# ส่วนสำหรับแสดง non-field errors ของฟอร์ม - แก้ไขการจัดวาง #}
             {% if form.non_field_errors %}
-            <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+            <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm"> {# ลบ mb-4 ออกถ้าใช้ space-y-6 กับ form แล้ว #}
                 {% for error in form.non_field_errors %}
                 <p>{{ error }}</p>
                 {% endfor %}
             </div>
             {% endif %}
             
-            <div class="mb-4">
-                <label for="{{ form.username.id_for_label }}" class="block text-gray-700 font-medium mb-2">ชื่อผู้ใช้</label>
-                {{ form.username }}
+            {# Username Field #}
+            <div>
+                <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">ชื่อผู้ใช้</label>
+                {{ form.username }} {# Django UserCreationForm จะ render input field พร้อม class พื้นฐาน #}
+                {% comment %} 
+                    ถ้าต้องการเพิ่ม class ให้ input field ของ Django Form โดยตรง
+                    อาจจะต้องใช้ widget_tweaks หรือ custom widget ใน forms.py
+                    ตัวอย่างการใช้ widget_tweaks (ถ้าติดตั้งแล้ว):
+                    {% load widget_tweaks %}
+                    {{ form.username|add_class:"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" }}
+                {% endcomment %}
                 {% if form.username.errors %}
-                <p class="text-red-500 text-sm mt-1">{{ form.username.errors.0 }}</p>
+                <div class="mt-1">
+                    {% for error in form.username.errors %}
+                    <p class="text-red-600 text-xs italic">{{ error }}</p>
+                    {% endfor %}
+                </div>
                 {% endif %}
-                <p class="text-sm text-gray-500 mt-1">ตัวอักษร ตัวเลข และเครื่องหมาย @/./+/-/_ เท่านั้น</p>
+                <p class="text-xs text-gray-500 mt-1">ต้องระบุ. 150 ตัวอักษรหรือน้อยกว่า. ตัวอักษร, ตัวเลข และ @/./+/-/_ เท่านั้น.</p>
             </div>
             
-            <div class="mb-4">
-                <label for="{{ form.password1.id_for_label }}" class="block text-gray-700 font-medium mb-2">รหัสผ่าน</label>
+            {# Password Field 1 #}
+            <div>
+                <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
                 {{ form.password1 }}
                 {% if form.password1.errors %}
-                <p class="text-red-500 text-sm mt-1">{{ form.password1.errors.0 }}</p>
+                <div class="mt-1">
+                    {% for error in form.password1.errors %}
+                    <p class="text-red-600 text-xs italic">{{ error }}</p>
+                    {% endfor %}
+                </div>
                 {% endif %}
-                <ul class="text-sm text-gray-500 mt-1 list-disc pl-5">
-                    <li>รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร</li>
-                    <li>รหัสผ่านต้องไม่เหมือนกับชื่อผู้ใช้</li>
-                    <li>รหัสผ่านควรประกอบด้วยตัวอักษรและตัวเลข</li>
+                {# แสดง help text ภาษาไทยแบบที่คุณต้องการ #}
+                <ul class="text-xs text-gray-500 mt-2 list-disc list-inside space-y-0.5">
+                    <li>รหัสผ่านของคุณต้องมีอย่างน้อย 8 ตัวอักษร</li>
+                    <li>รหัสผ่านของคุณต้องไม่คล้ายกับข้อมูลส่วนตัวอื่นๆ มากเกินไป</li>
+                    <li>รหัสผ่านของคุณต้องไม่เป็นรหัสผ่านที่ใช้งานทั่วไป (เช่น password, 12345678)</li>
+                    <li>รหัสผ่านของคุณต้องไม่ใช่ตัวเลขทั้งหมด</li>
                 </ul>
             </div>
             
-            <div class="mb-6">
-                <label for="{{ form.password2.id_for_label }}" class="block text-gray-700 font-medium mb-2">ยืนยันรหัสผ่าน</label>
+            {# Password Field 2 (Confirmation) #}
+            <div> {# mb-6 ถูกจัดการโดย space-y-6 ของ form แล้ว #}
+                <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">ยืนยันรหัสผ่าน</label>
                 {{ form.password2 }}
                 {% if form.password2.errors %}
-                <p class="text-red-500 text-sm mt-1">{{ form.password2.errors.0 }}</p>
+                <div class="mt-1">
+                    {% for error in form.password2.errors %}
+                    <p class="text-red-600 text-xs italic">{{ error }}</p>
+                    {% endfor %}
+                </div>
                 {% endif %}
             </div>
             
-            <div class="mb-6">
-                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-md">สมัครสมาชิก</button>
+            <div class="pt-2"> {# mb-6 ถูกจัดการโดย space-y-6 ของ form แล้ว, เพิ่ม pt-2 เล็กน้อย #}
+                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-colors duration-150 text-base">
+                    สร้างบัญชี
+                </button>
             </div>
             
-            <p class="text-center text-gray-600">มีบัญชีอยู่แล้ว? <a href="{% url 'login' %}" class="text-purple-600 hover:text-purple-800">เข้าสู่ระบบ</a></p>
+            <p class="text-center text-sm text-gray-600 pt-2">
+                มีบัญชีอยู่แล้ว? <a href="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="font-medium text-purple-600 hover:text-purple-800 hover:underline">เข้าสู่ระบบที่นี่</a>
+            </p>
         </form>
     </div>
 </section>

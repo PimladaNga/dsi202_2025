@@ -6,25 +6,76 @@
 {% block content %}
 
     {% if user.is_authenticated %}
+        {# --- เนื้อหาสำหรับผู้ใช้ที่ล็อกอินแล้ว --- #}
         <div class="container mx-auto px-4 py-8">
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-5 leading-loose">
+            <h2 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-5 leading-loose"> {# เปลี่ยน h1 เป็น h2 ถ้า h1 ใช้ใน base.html แล้ว #}
                 ยินดีต้อนรับ, {{ user.username }} 👋
             </h2>
-            <p class="text-lg text-gray-600">
+            <p class="text-lg text-gray-600 mb-6">
                 นี่คือพื้นที่ของคุณ! ลองค้นหากิจกรรมที่น่าสนใจ หรือดูว่ามีอะไรใหม่ๆ ในชุมชนที่คุณติดตามบ้าง
             </p>
-            <div class="mt-6">
-                <a href="{% url 'event_list' %}" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 text-base mr-4">
+            <div class="flex flex-wrap gap-4">
+                <a href="{% url 'event_list' %}" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 text-base">
                     ค้นหากิจกรรม
                 </a>
                 <a href="{% url 'user_profile' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 text-base">
                     ดูโปรไฟล์ของคุณ
                 </a>
+                {# เพิ่มปุ่มทำแบบทดสอบผีเสื้อ ถ้ายังไม่เคยทำ หรืออยากทำใหม่ #}
+                {% if not user.profile.assigned_butterfly_type %}
+                    <a href="{% url 'butterfly_quiz' %}" class="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 text-base">
+                        🦋 ค้นหาผีเสื้อของคุณ
+                    </a>
+                {% endif %}
             </div>
-            {# คุณสามารถเพิ่มเนื้อหาอื่นๆ สำหรับผู้ใช้ที่ล็อกอินแล้วที่นี่ได้ #}
+
+            {# --- ส่วน "กิจกรรมแนะนำน่าสนใจ" สำหรับผู้ใช้ที่ล็อกอินแล้ว (ย้ายมาจากข้างล่าง) --- #}
+            {% if featured_events %}
+            <div class="mt-12">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">กิจกรรมแนะนำสำหรับคุณ</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {% for event in featured_events %}
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                        <a href="{% url 'event_detail' event.id %}" class="block h-48 overflow-hidden">
+                            {% if event.image and event.image.url %}
+                            <img src="{{ event.image.url }}" alt="{{ event.title }}" class="w-full h-full object-cover">
+                            {% else %}
+                            <div class="w-full h-full bg-gray-100 flex items-center justify-center">
+                                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            {% endif %}
+                        </a>
+                        <div class="p-5 flex flex-col flex-grow">
+                            <a href="{% url 'event_detail' event.id %}" class="hover:text-purple-700">
+                                <h3 class="font-semibold text-lg mb-1 text-gray-800 group-hover:text-purple-700 truncate_2_lines">{{ event.title }}</h3>
+                            </a>
+                            {% if event.category %}
+                            <p class="text-xs text-purple-600 font-medium mb-2">{{ event.category.name }}</p>
+                            {% endif %}
+                            <p class="text-sm text-gray-500 mb-1 flex items-center">
+                                <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                {{ event.date|date:"d M Y" }} <span class="mx-1">|</span> {{ event.time|time:"H:i" }} น.
+                            </p>
+                            <p class="text-sm text-gray-600 mb-3 flex items-center truncate_2_lines">
+                                <svg class="w-4 h-4 mr-1.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                {{ event.location }}
+                            </p>
+                            <div class="mt-auto pt-3 border-t border-gray-100">
+                                <a href="{% url 'event_detail' event.id %}" class="block w-full text-center bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white py-2.5 px-4 rounded-md text-sm font-medium transition-colors duration-150">
+                                    ดูรายละเอียด
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {# --- จบส่วนกิจกรรมแนะนำสำหรับผู้ใช้ที่ล็อกอินแล้ว --- #}
         </div>
-    {% else %}
-        {# --- เริ่มส่วน Hero Section ใหม่ (สไตล์ Meetup.com) --- #}
+
+    {% else %} {# ผู้ใช้ยังไม่ได้ล็อกอิน #}
+        {# --- ส่วน Hero Banner (สำหรับผู้ที่ยังไม่ได้ล็อกอิน) --- #}
         <section class="bg-gradient-to-b from-white to-purple-100 pt-12 pb-16 md:pt-16 md:pb-20">
             <div class="container mx-auto px-4">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16">
@@ -35,23 +86,30 @@
                         <p class="text-lg text-gray-700 mb-8 leading-relaxed max-w-xl">
                             ไม่ว่าความสนใจของคุณจะเป็นอะไร ตั้งแต่การเดินป่า อ่านหนังสือ ไปจนถึงการสร้างเครือข่ายและแบ่งปันทักษะ Chum-Chon Link คือพื้นที่สำหรับทุกคนที่มีใจเดียวกัน กิจกรรมใหม่ๆ เกิดขึ้นทุกวัน—สมัครเลยแล้วมาสนุกด้วยกัน!
                         </p>
-                        <a href="{% url 'signup' %}" class="inline-block bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105 text-lg">
-                            เข้าร่วม Chum-Chon Link
-                        </a>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-4 justify-center md:justify-start">
+                            <a href="{% url 'signup' %}" class="inline-block bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105 text-lg">
+                                เข้าร่วม Chum-Chon Link
+                            </a>
+                            <a href="{% url 'signup' %}?next={% url 'butterfly_quiz' %}" class="inline-block bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105 text-lg">
+                                🦋 ค้นหาผีเสื้อในตัวคุณ
+                            </a>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-3 text-center md:text-left">
+                            (การค้นหาผีเสื้อในตัวคุณ จะพาไปสมัครสมาชิกก่อน หากยังไม่มีบัญชี)
+                        </p>
                     </div>
 
-                    <div class="md:w-2/5 lg:w-1/2 mt-8 md:mt-0 flex justify-center md:justify-end">
+                    <div class="md:w-2/5 lg:w-1/2 mt-8 md:mt-0 flex justify-center md:justify-end">        
                         <img src="{% static 'images/signup-banner.jpg' %}" alt="ภาพประกอบชุมชนผีเสื้อและความสุขของผู้คน" class="w-full max-w-sm sm:max-w-md md:max-w-lg h-auto rounded-lg shadow-md">
                     </div>
                 </div>
             </div>
         </section>
-        {# --- จบส่วน Hero Section ใหม่ --- #}
-    {% endif %} {# <--- นี่คือ endif ที่สำคัญมาก ต้องอยู่ตรงนี้ #}
+    {% endif %} {# <--- ปิด {% if user.is_authenticated %} #}
 
-    {# --- ส่วนนี้จะแสดงผลสำหรับทุกคน (ทั้งล็อกอินและยังไม่ได้ล็อกอิน) --- #}
-    <section class="py-12 md:py-16 bg-gray-50 border-t border-gray-200">
-        <div class="container mx-auto px-4"> {# เปิด container หนึ่งครั้งสำหรับส่วนที่เหลือ #}
+    {# --- ส่วนนี้จะแสดงผลสำหรับทุกคน (ทั้งล็อกอินและยังไม่ได้ล็อกอิน) ยกเว้น "กิจกรรมแนะนำ" ที่ย้ายไปอยู่ข้างบนสำหรับคนที่ล็อกอินแล้ว --- #}
+    <section class="py-12 md:py-16 bg-gray-50 {% if not user.is_authenticated %}border-t border-gray-200{% endif %}">
+        <div class="container mx-auto px-4">
             <div class="text-center">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">ค้นพบกิจกรรมที่ใช่สำหรับคุณ</h2>
                 <p class="text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
@@ -68,13 +126,14 @@
                 </div>
             </div>
 
+            {% if communities %}
             <div class="mb-12">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">สำรวจชุมชนของเรา</h2>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
                     {% for community in communities %}
                     <a href="{% url 'event_list' %}?community={{ community.id }}" class="group block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
                         <div class="relative h-40">
-                            {% if community.image %}
+                            {% if community.image and community.image.url %}
                             <img src="{{ community.image.url }}" alt="{{ community.name }}" class="w-full h-full object-cover">
                             {% else %}
                             <div class="w-full h-full flex items-center justify-center bg-purple-100">
@@ -91,14 +150,16 @@
                     {% endfor %}
                 </div>
             </div>
+            {% endif %}
 
+            {% if categories %}
             <div class="mb-12">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">เลือกตามหมวดหมู่</h2>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
                     {% for category in categories %}
                      <a href="{% url 'event_list' %}?category={{ category.id }}" class="group block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
                         <div class="relative h-40">
-                            {% if category.image %}
+                            {% if category.image and category.image.url %}
                             <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
                             {% else %}
                             <div class="w-full h-full flex items-center justify-center bg-indigo-100">
@@ -115,17 +176,19 @@
                     {% endfor %}
                 </div>
             </div>
+            {% endif %}
 
+            {% if not user.is_authenticated and featured_events %} {# แสดงกิจกรรมแนะนำสำหรับคนที่ยังไม่ login เท่านั้น (เพราะคนที่ login แล้วจะเห็นข้างบน) #}
             <div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">กิจกรรมแนะนำน่าสนใจ</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {% for event in featured_events %}
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <a href="{% url 'event_detail' event.id %}" class="block h-48 overflow-hidden">
-                            {% if event.image %}
+                            {% if event.image and event.image.url %}
                             <img src="{{ event.image.url }}" alt="{{ event.title }}" class="w-full h-full object-cover">
                             {% else %}
-                            <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                            <div class="w-full h-full bg-gray-100 flex items-center justify-center">
                                 <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             </div>
                             {% endif %}
@@ -134,7 +197,9 @@
                             <a href="{% url 'event_detail' event.id %}" class="hover:text-purple-700">
                                 <h3 class="font-semibold text-lg mb-1 text-gray-800 group-hover:text-purple-700 truncate_2_lines">{{ event.title }}</h3>
                             </a>
+                            {% if event.category %}
                             <p class="text-xs text-purple-600 font-medium mb-2">{{ event.category.name }}</p>
+                            {% endif %}
                             <p class="text-sm text-gray-500 mb-1 flex items-center">
                                 <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 {{ event.date|date:"d M Y" }} <span class="mx-1">|</span> {{ event.time|time:"H:i" }} น.
@@ -157,7 +222,9 @@
                     {% endfor %}
                 </div>
             </div>
+            {% endif %}
+
         </div> {# ปิด container ของ Communities, Categories, Featured Events #}
     </section> {# ปิด section ของ "ค้นพบกิจกรรมที่คุณสนใจ" และส่วนที่เหลือ #}
 
-{% endblock %}
+{% endblock content %}

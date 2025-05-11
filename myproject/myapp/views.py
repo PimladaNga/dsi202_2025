@@ -286,17 +286,33 @@ def butterfly_result_view(request, slug):
 
 # ใน views.py
 def signup(request):
-    if request.user.is_authenticated: # เพิ่มบรรทัดนี้
-        return redirect('home')      # เพิ่มบรรทัดนี้
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    # ดึงค่า next จาก POST (ถ้าฟอร์มถูก submit) หรือ GET (ถ้ามาจากลิงก์)
+    redirect_to = request.POST.get('next', request.GET.get('next', ''))
+
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('butterfly_quiz') # ถูกต้อง
+
+            # ตรวจสอบว่า redirect_to มีค่าและเป็น local URL หรือไม่
+            # (การตรวจสอบนี้เป็นแบบง่ายๆ อาจจะต้องใช้ฟังก์ชันที่ซับซ้อนกว่านี้ถ้าต้องการความปลอดภัยสูงสุด)
+            if redirect_to and redirect_to.startswith('/'):
+                return redirect(redirect_to)
+            else:
+                # ถ้าไม่มี next หรือ next ไม่ปลอดภัย ให้ redirect ไปที่หน้า Quiz ตามปกติ
+                return redirect(reverse('butterfly_quiz'))
     else:
         form = UserCreationForm()
-    return render(request, 'myapp/signup.html', {'form': form})
+
+    context = {
+        'form': form,
+        'next': redirect_to # ส่ง next ไปยัง template signup.html (สำหรับ hidden input)
+    }
+    return render(request, 'myapp/signup.html', context)
 
 # --- REST Framework API ViewSets ---
 from rest_framework import viewsets
