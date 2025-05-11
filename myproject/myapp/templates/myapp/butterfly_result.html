@@ -9,15 +9,15 @@
     <div class="container mx-auto px-4">
         <div class="max-w-3xl mx-auto bg-white p-6 sm:p-10 rounded-xl shadow-2xl text-center">
 
-            {# --- ส่วน img tag ที่ถูกต้อง --- #}
             <div class="mb-6">
                 {% if butterfly_type.result_image %}
-                <img src="{{ butterfly_type.result_image.url }}" alt="ผลลัพธ์: {{ butterfly_type.name }}" class="max-w-xs sm:max-w-sm mx-auto rounded-lg shadow-lg object-contain h-64 sm:h-80">
+                    <img src="{{ butterfly_type.result_image.url }}" alt="ผลลัพธ์: {{ butterfly_type.name }}" class="max-w-xs sm:max-w-sm mx-auto rounded-lg shadow-lg object-contain h-64 sm:h-80">
                 {% elif butterfly_type.icon_image %}
-                <img src="{{ butterfly_type.icon_image.url }}" alt="ไอคอน: {{ butterfly_type.name }}" class="w-32 h-32 mx-auto rounded-full object-cover shadow-md">
+                    <img src="{{ butterfly_type.icon_image.url }}" alt="ไอคอน: {{ butterfly_type.name }}" class="w-32 h-32 mx-auto rounded-full object-cover shadow-md">
                 {% else %}
-                {# ตรวจสอบ path และชื่อไฟล์ให้ถูกต้อง ถ้าเป็น default_butterfly.jpg ก็ใช้ .jpg #}
-                <img src="{% static 'myapp/images/default_butterfly.png' %}" alt="ผีเสื้อ" class="w-32 h-32 mx-auto rounded-full object-cover opacity-50">
+                    {# รูปภาพ default ถ้าไม่มีทั้ง result_image และ icon_image #}
+                    <img src="{% static 'myapp/images/default_butterfly_result.png' %}" alt="ผีเสื้อ" class="w-32 h-32 mx-auto rounded-full object-cover opacity-50">
+                    {# !!! สร้างไฟล์ myapp/static/myapp/images/default_butterfly_result.png ด้วยนะคะ !!! #}
                 {% endif %}
             </div>
 
@@ -49,6 +49,10 @@
                 <button onclick="shareQuizResult('{{ butterfly_type.name }}')" class="inline-block w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md">
                     แชร์ผลลัพธ์นี้
                 </button>
+                {# เพิ่มปุ่มทำ Quiz ใหม่ ถ้าต้องการ #}
+                <a href="{% url 'butterfly_quiz' %}" class="inline-block w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-6 py-3 rounded-lg shadow-md">
+                    ทำแบบทดสอบใหม่
+                </a>
             </div>
         </div>
     </div>
@@ -68,7 +72,6 @@
             .then(() => console.log('Successful share'))
             .catch((error) => console.log('Error sharing', error));
         } else {
-            // Fallback for browsers that do not support navigator.share
             alert(`แชร์ผลลัพธ์ของคุณ: ${shareText} ที่ ${shareUrl}`);
         }
     }

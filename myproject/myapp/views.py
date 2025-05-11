@@ -127,29 +127,51 @@ def attend_event(request, pk):
 # --- User Profile ---
 @login_required
 def user_profile(request, username=None):
-    target_user = get_object_or_404(User, username=username) if username else request.user
-    profile, _ = UserProfile.objects.get_or_create(user=target_user)
-    organized_events = Event.objects.filter(organizer=target_user)
+    if username:
+        # ดูโปรไฟล์ของคนอื่น
+        target_user = get_object_or_404(User, username=username)
+    else:
+        # ดูโปรไฟล์ของตัวเอง (เมื่อเข้า /profile/ โดยไม่มี username)
+        target_user = request.user
+
+    # ดึง UserProfile (จะถูกสร้างอัตโนมัติโดย signal ถ้ายังไม่มี)
+    profile, created = UserProfile.objects.get_or_create(user=target_user)
+    is_own_profile = (request.user == target_user)
+
+    # ดึงข้อมูลกิจกรรมที่เกี่ยวข้อง (สามารถเพิ่ม .order_by() เพื่อจัดเรียงได้)
+    organized_events = Event.objects.filter(organizer=target_user).order_by('-created_at')
     attending_events = Event.objects.filter(
         attendees__user=target_user,
         attendees__status='attending'
-    )
+    ).order_by('-date', '-time') # เรียงจากกิจกรรมล่าสุด
+
     context = {
-        'profile_user': target_user,
-        'profile': profile,
+        'profile_user': target_user,        # User object ของเจ้าของโปรไฟล์ที่กำลังดู
+        'profile': profile,                 # UserProfile object ของเจ้าของโปรไฟล์
         'organized_events': organized_events,
         'attending_events': attending_events,
-        'is_own_profile': target_user == request.user
+        'is_own_profile': is_own_profile    # Boolean เพื่อตรวจสอบใน template
     }
     return render(request, 'myapp/user_profile.html', context)
 
 @login_required
 def edit_profile(request):
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
-    form = UserProfileForm(request.POST or None, request.FILES or None, instance=profile)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        return redirect('user_profile')
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    # --- ตรวจสอบว่าคุณมี UserProfileForm ใน forms.py หรือยัง ---
+    # ถ้ายังไม่มี อาจจะต้องสร้าง form นี้ก่อน หรือใช้ Django's ModelForm
+    # from .forms import UserProfileForm # (ถ้ายังไม่ได้ import)
+
+    # สมมติว่าคุณมี UserProfileForm ที่รับ instance ของ UserProfile
+    # และสามารถจัดการ field 'bio' และ 'profile_image' ได้
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            # หลังจาก save ควรจะ redirect ไปยังหน้า profile ของตัวเอง
+            return redirect('user_profile') # หรือ redirect('view_profile', username=request.user.username) ก็ได้
+    else:
+        form = UserProfileForm(instance=profile)
+
     return render(request, 'myapp/edit_profile.html', {'form': form})
 
 # --- Butterfly Quiz ---
