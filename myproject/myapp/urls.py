@@ -1,35 +1,23 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from . import views # ใช้ from . import views ถ้าไฟล์นี้อยู่ใน myapp
-from django.contrib.auth import views as auth_views
+# myapp/urls.py
+from django.urls import path
+from . import views
 
-# Create router and register viewsets
-router = DefaultRouter()
-router.register(r'users', views.UserViewSet)
-router.register(r'profiles', views.UserProfileViewSet)
-router.register(r'communities', views.CommunityViewSet)
-router.register(r'categories', views.CategoryViewSet)
-router.register(r'events', views.EventViewSet)
-router.register(r'attendances', views.AttendanceViewSet)
-
-# Webpage URLs
 urlpatterns = [
     path('', views.home, name='home'),
     path('events/', views.EventListView.as_view(), name='event_list'),
-    path('events/<int:pk>/', views.EventDetailView.as_view(), name='event_detail'),
     path('events/create/', views.EventCreateView.as_view(), name='event_create'),
-    path('events/<int:pk>/edit/', views.EventUpdateView.as_view(), name='event_update'),
+    path('events/<int:pk>/', views.EventDetailView.as_view(), name='event_detail'),
+    path('events/<int:pk>/update/', views.EventUpdateView.as_view(), name='event_update'),
     path('events/<int:pk>/attend/', views.attend_event, name='attend_event'),
-    path('profile/', views.user_profile, name='user_profile'),
-    path('profile/edit/', views.edit_profile, name='edit_profile'),
+
     path('profile/<str:username>/', views.user_profile, name='view_profile'),
-    path('dashboard/', views.dashboard_page, name='dashboard'),
+    path('profile/', views.user_profile, name='user_profile'),  
 
-    # Authentication URLs
-    path('login/', auth_views.LoginView.as_view(template_name='myapp/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
     path('signup/', views.signup, name='signup'),
+    # Login/Logout จัดการใน myproject/urls.py
 
-    # API URLs
-    path('api/', include(router.urls)),
+    path('quiz/', views.butterfly_quiz_view, name='butterfly_quiz'),
+    path('quiz/result/<slug:slug>/', views.butterfly_result_view, name='butterfly_result_page_slug'),
+
+    path('dashboard/', views.dashboard_page, name='dashboard'), # ตรวจสอบว่ามี view นี้จริง
 ]

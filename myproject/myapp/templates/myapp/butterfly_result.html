@@ -1,0 +1,73 @@
+{# myapp/templates/myapp/butterfly_result.html #}
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}ผลลัพธ์ผีเสื้อของคุณ: {{ butterfly_type.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<section class="py-8 md:py-12 bg-gradient-to-b from-{{ butterfly_type.theme_color_start|default:'purple-50' }} to-{{ butterfly_type.theme_color_end|default:'pink-50' }} min-h-[calc(100vh-150px)] flex items-center">
+    <div class="container mx-auto px-4">
+        <div class="max-w-3xl mx-auto bg-white p-6 sm:p-10 rounded-xl shadow-2xl text-center">
+
+            {# --- ส่วน img tag ที่ถูกต้อง --- #}
+            {% if butterfly_type.result_image %}
+            <img src="{{ butterfly_type.result_image.url }}" ...>
+            {% elif butterfly_type.icon_image %}
+            <img src="{{ butterfly_type.icon_image.url }}" ...>
+            {% else %}
+            <img src="{% static 'myapp/images/default_butterfly.png' %}" ...>
+            {# ในไฟล์ที่คุณอัปโหลดล่าสุดเป็น default_butterfly.jpg ซึ่งก็โอเค ถ้าไฟล์คุณเป็น .jpg #}
+            {% endif %}
+
+            <h1 class="text-3xl sm:text-4xl font-bold text-{{ butterfly_type.text_color|default:'purple-700' }} mb-3">คุณคือ "{{ butterfly_type.name }}"!</h1>
+            <p class="text-lg text-gray-700 mb-6">{{ butterfly_type.description }}</p>
+
+            {% if butterfly_type.long_description %}
+            <div class="text-left bg-gray-50 p-4 rounded-lg mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-2">ลักษณะเพิ่มเติม:</h2>
+                <p class="text-gray-600 leading-relaxed">{{ butterfly_type.long_description|linebreaksbr }}</p>
+            </div>
+            {% endif %}
+
+            {% if butterfly_type.strengths %}
+            <div class="text-left bg-green-50 p-4 rounded-lg mb-3">
+                <h3 class="font-semibold text-green-700">จุดแข็งของคุณ:</h3>
+                <p class="text-green-600">{{ butterfly_type.strengths }}</p>
+            </div>
+            {% endif %}
+
+            {% if butterfly_type.theme_colors_description %}
+            <p class="text-sm text-gray-500 mt-4 mb-6"><strong>สี/ธีมที่สื่อถึงคุณ:</strong> {{ butterfly_type.theme_colors_description }}</p>
+            {% endif %}
+
+            <div class="mt-8 space-y-3 sm:space-y-0 sm:space-x-4">
+                <a href="{% url 'user_profile' %}" class="inline-block w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md">
+                    ดูโปรไฟล์ของฉัน
+                </a>
+                <button onclick="shareQuizResult('{{ butterfly_type.name }}')" class="inline-block w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md">
+                    แชร์ผลลัพธ์นี้
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    function shareQuizResult(butterflyName) {
+        const shareUrl = window.location.href;
+        const shareText = `ฉันได้ผลลัพธ์เป็นผีเสื้อ "${butterflyName}" จาก Chum-Chon Link Butterfly Quiz! มาลองเล่นดูสิ!`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'ผลลัพธ์ Butterfly Quiz ของฉัน!',
+                text: shareText,
+                url: shareUrl,
+            })
+            .then(() => console.log('Successful share'))
+            .catch((error) => console.log('Error sharing', error));
+        } else {
+            alert(`แชร์ผลลัพธ์ของคุณ: ${shareText} ที่ ${shareUrl}`);
+        }
+    }
+</script>
+{% endblock %}

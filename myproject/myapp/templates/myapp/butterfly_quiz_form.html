@@ -1,0 +1,58 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"แบบทดสอบค้นหาผีเสื้อของคุณ" }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<section class="py-8 md:py-12 bg-gradient-to-b from-purple-50 to-pink-50 min-h-[calc(100vh-150px)] flex items-center">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl">
+            <div class="text-center mb-8">
+                {% if 'myapp/images/butterfly_quiz_header.png' %}
+                    <img src="{% static 'myapp/images/butterfly_quiz_header.png' %}" alt="ค้นหาผีเสื้อในตัวคุณ" class="w-24 h-24 mx-auto mb-4 rounded-full object-cover">
+                    {# !!! ตรวจสอบว่าไฟล์นี้ myapp/static/myapp/images/butterfly_quiz_header.png มีอยู่จริง !!! #}
+                {% endif %}
+                <h1 class="text-3xl sm:text-4xl font-bold text-purple-700">{{ page_title|default:"แบบทดสอบค้นหาผีเสื้อของคุณ" }}</h1>
+                {% if questions %}
+                    <p class="text-gray-600 mt-2">ตอบคำถามสั้นๆ เพียง {{ questions|length }} ข้อ เพื่อค้นพบว่าคุณคือผีเสื้อประเภทไหน!</p>
+                {% endif %}
+            </div>
+
+            {% if error_message %}
+                <div class="mb-6 p-4 bg-red-100 text-red-700 rounded-md text-center">
+                    {{ error_message }}
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'butterfly_quiz' %}"> {# action ชี้ไปที่ URL name ของ view ที่ประมวลผล quiz #}
+                {% csrf_token %}
+                <div class="space-y-8">
+                    {% for question in questions %}
+                    <fieldset class="border border-gray-300 rounded-lg p-4 sm:p-6 shadow-sm">
+                        <legend class="text-lg sm:text-xl font-semibold text-gray-800 px-2">{{ forloop.counter }}. {{ question.text }}</legend>
+                        <div class="mt-4 space-y-3">
+                            {% for choice in question.choices.all %}
+                            <label for="choice_{{ choice.id }}" class="flex items-center p-3 rounded-md border border-gray-200 hover:bg-purple-50 hover:border-purple-400 transition-all duration-150 cursor-pointer has-[:checked]:bg-purple-100 has-[:checked]:border-purple-500 has-[:checked]:ring-2 has-[:checked]:ring-purple-300">
+                                <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" id="choice_{{ choice.id }}" class="h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 mr-3" required>
+                                <span class="text-gray-700 text-sm sm:text-base">{{ choice.text }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                    {% empty %}
+                    <p class="text-center text-gray-500">ขออภัย, ยังไม่มีคำถามในระบบ ณ ขณะนี้</p>
+                    {% endfor %}
+                </div>
+
+                {% if questions %}
+                <div class="mt-10 text-center">
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold px-10 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 text-lg">
+                        ส่งคำตอบและดูผลลัพธ์
+                    </button>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

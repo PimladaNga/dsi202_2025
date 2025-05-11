@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'myapp',
     'rest_framework',
-     'widget_tweaks',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -62,8 +62,8 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             os.path.join(BASE_DIR, 'templates'),
-            os.path.join(BASE_DIR, 'myapp/templates'),  # เพิ่มบรรทัดนี้
-        ],
+            os.path.join(BASE_DIR, 'myapp/templates'), # ที่คุณได้แก้ไข/เพิ่มเข้ามา
+        ], # <--- ปิด list ของ 'DIRS'
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,10 +71,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
+            ], 
+        }, 
+    }, 
+] 
 
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
@@ -125,10 +125,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -141,6 +137,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Login settings
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'home'
+LOGIN_URL = 'login'  # ชื่อ URL pattern ของหน้า login ของคุณ
+LOGIN_REDIRECT_URL = 'home' # หลังจาก login สำเร็จ ให้ไปที่หน้า home
+LOGOUT_REDIRECT_URL = 'home' # หลังจาก logout สำเร็จ ให้ไปที่หน้า home
+STATIC_URL = '/static/'
