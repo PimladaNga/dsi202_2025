@@ -157,37 +157,49 @@ def edit_profile(request):
 def butterfly_quiz_view(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
 
+    # ถ้าเคยทำ quiz และมีผลลัพธ์แล้ว ให้ redirect ไปหน้าผลลัพธ์เลย
     if user_profile.assigned_butterfly_type and user_profile.quiz_completed_at:
         return redirect(reverse('butterfly_result_page_slug', kwargs={'slug': user_profile.assigned_butterfly_type.slug}))
 
     questions = Question.objects.prefetch_related('choices').order_by('order').all()
-    page_title = "แบบทดสอบค้นหาผีเสื้อของคุณ" # ส่ง page_title ไปยัง template
+    page_title = "แบบทดสอบค้นหาผีเสื้อของคุณ"
+    error_message = None # กำหนดค่าเริ่มต้น error_message
 
     if request.method == 'POST':
         type_scores = {bt.id: 0 for bt in ButterflyType.objects.all()}
         all_questions_answered = True
+        answered_question_ids = set() # เก็บ ID ของคำถามที่ตอบแล้ว
+
         for question in questions:
             choice_id = request.POST.get(f'question_{question.id}')
-            if not choice_id:
-                all_questions_answered = False
-                break
-            try:
-                selected_choice = Choice.objects.get(id=choice_id, question=question)
-                if selected_choice.points_to_type:
-                    type_scores[selected_choice.points_to_type.id] += 1
-            except Choice.DoesNotExist:
-                all_questions_answered = False
-                break
+            if choice_id: # ตรวจสอบว่ามีการส่งค่า choice_id มาหรือไม่
+                answered_question_ids.add(question.id)
+                try:
+                    selected_choice = Choice.objects.get(id=choice_id, question=question)
+                    if selected_choice.points_to_type:
+                        type_scores[selected_choice.points_to_type.id] += 1
+                except Choice.DoesNotExist:
+                    # กรณีนี้ไม่ควรเกิดขึ้นถ้า choice_id ถูกต้อง แต่ใส่ไว้เพื่อความปลอดภัย
+                    all_questions_answered = False # หรือจะตั้ง error_message ก็ได้
+                    error_message = "มีข้อผิดพลาดในการเลือกคำตอบ กรุณาลองใหม่อีกครั้ง"
+                    break
+            # ไม่จำเป็นต้อง break ถ้าคำถามไม่ได้ถูกตอบทั้งหมดในครั้งเดียว
+            # การตรวจสอบจะทำหลังจาก loop
+
+        # ตรวจสอบว่าตอบครบทุกคำถามหรือไม่
+        if len(answered_question_ids) != questions.count():
+            all_questions_answered = False
+            error_message = "กรุณาตอบคำถามให้ครบทุกข้อ"
 
         if not all_questions_answered:
             context = {
                 'questions': questions,
                 'page_title': page_title,
-                'error_message': "กรุณาตอบคำถามให้ครบทุกข้อ",
+                'error_message': error_message,
             }
-            # --- Render template หน้าคำถาม Quiz ---
-            return render(request, 'myapp/butterfly_quiz.html', context)
+            return render(request, 'myapp/butterfly_quiz_form.html', context) # <--- แก้ไขชื่อ template
 
+        # ตรวจสอบว่ามีคะแนนเกิดขึ้นหรือไม่ (ป้องกันกรณีที่ไม่มีการเลือก choice ใดๆ ที่ให้คะแนน)
         if any(score > 0 for score in type_scores.values()):
             highest_score = -1
             winning_type_ids = []
@@ -199,50 +211,55 @@ def butterfly_quiz_view(request):
                     winning_type_ids.append(type_id)
 
             if winning_type_ids:
+                # เลือก type แรกถ้ามีคะแนนเท่ากันหลายตัว (หรือจะสุ่มก็ได้ถ้าต้องการ)
                 final_winning_type_id = sorted(winning_type_ids)[0]
                 assigned_type = ButterflyType.objects.get(id=final_winning_type_id)
                 user_profile.assigned_butterfly_type = assigned_type
                 user_profile.quiz_completed_at = timezone.now()
                 user_profile.save()
-                # --- Redirect ไปยังหน้าผลลัพธ์ ---
                 return redirect(reverse('butterfly_result_page_slug', kwargs={'slug': assigned_type.slug}))
-        else:
-            context = {
-                'questions': questions,
-                'page_title': page_title,
-                'error_message': "เกิดข้อผิดพลาดในการประมวลผลคำตอบ หรือคุณอาจจะยังไม่ได้เลือกคำตอบใดๆ",
-            }
-            # --- Render template หน้าคำถาม Quiz ---
-            return render(request, 'myapp/butterfly_quiz.html', context)
+            else: # กรณีที่วน loop แล้วไม่เจอ winning_type_ids (ไม่ควรเกิดขึ้นถ้า logic ถูกต้อง)
+                error_message = "ไม่สามารถคำนวณผลลัพธ์ได้ กรุณาลองใหม่อีกครั้ง"
+        else: # กรณีที่ไม่มีคะแนนใดๆ เลย (เช่น ตอบแต่ choice ที่ไม่มี points_to_type หรือไม่ได้ตอบเลย)
+             error_message = "กรุณาเลือกคำตอบ หรือเกิดข้อผิดพลาดในการประมวลผล"
 
+
+        # ถ้ามาถึงตรงนี้ แสดงว่ามีปัญหาบางอย่างในการประมวลผล หรือไม่มีคะแนน
+        context = {
+            'questions': questions,
+            'page_title': page_title,
+            'error_message': error_message if error_message else "เกิดข้อผิดพลาดบางอย่าง กรุณาลองใหม่",
+        }
+        return render(request, 'myapp/butterfly_quiz_form.html', context) # <--- แก้ไขชื่อ template
+
+    # สำหรับ GET request หรือถ้ายังไม่ได้ submit form
     context = {
         'questions': questions,
         'page_title': page_title,
     }
-    # --- Render template หน้าคำถาม Quiz ---
-    return render(request, 'myapp/butterfly_quiz.html', context)
+    return render(request, 'myapp/butterfly_quiz_form.html', context) # <--- แก้ไขชื่อ template
 
 
 @login_required
 def butterfly_result_view(request, slug):
     butterfly_type = get_object_or_404(ButterflyType, slug=slug)
-    # user_profile, created = UserProfile.objects.get_or_create(user=request.user) # อาจจะไม่จำเป็นต้องดึง profile ที่นี่ ถ้าไม่ใช้
+    user_profile = get_object_or_404(UserProfile, user=request.user) # ดึงโปรไฟล์ของผู้ใช้ปัจจุบัน
 
-    # ถ้าต้องการตรวจสอบว่า user นี้เป็นคนได้ผลลัพธ์นี้จริงๆ
-    # current_user_profile = request.user.profile
-    # if current_user_profile.assigned_butterfly_type != butterfly_type:
-    #     # อาจจะ redirect ไปผลลัพธ์ของ user เอง หรือแจ้งเตือน
-    #     if current_user_profile.assigned_butterfly_type:
-    #         return redirect(reverse('butterfly_result_page_slug', kwargs={'slug': current_user_profile.assigned_butterfly_type.slug}))
-    #     else: # ถ้ายังไม่เคยทำ quiz
-    #         return redirect(reverse('butterfly_quiz'))
-
+    # (Optional) ตรวจสอบว่าผู้ใช้ที่เข้ามาดูผลลัพธ์ เป็นเจ้าของผลลัพธ์นั้นจริงๆ
+    # หรือเป็นประเภทผีเสื้อที่ถูก assign ให้กับ user คนนั้น
+    if user_profile.assigned_butterfly_type != butterfly_type:
+        # ถ้าผลลัพธ์ที่ขอดูไม่ตรงกับที่ assign ไว้ อาจจะ redirect ไปที่ผลลัพธ์ของ user เอง
+        if user_profile.assigned_butterfly_type:
+            return redirect(reverse('butterfly_result_page_slug', kwargs={'slug': user_profile.assigned_butterfly_type.slug}))
+        else:
+            # ถ้า user ยังไม่เคยทำ quiz เลย ก็ให้กลับไปทำ quiz
+            return redirect(reverse('butterfly_quiz'))
 
     context = {
         'butterfly_type': butterfly_type,
-        # page_title สามารถตั้งใน template butterfly_result.html ได้เลย
+        # page_title สามารถตั้งใน template butterfly_result.html ได้เลย หรือส่งจาก view นี้ก็ได้
+        # 'page_title': f"ผลลัพธ์ของคุณ: {butterfly_type.name}"
     }
-    # --- Render template หน้าผลลัพธ์ Quiz ---
     return render(request, 'myapp/butterfly_result.html', context)
 
 # ใน views.py

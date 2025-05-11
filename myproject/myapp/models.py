@@ -6,7 +6,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _ # สำหรับ verbose_name ที่เป็นภาษาไทย
 
-# --- Model เดิมของคุณ ---
 class Community(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("ชื่อชุมชน"))
     image = models.ImageField(upload_to='communities/', blank=True, null=True, verbose_name=_("รูปภาพชุมชน"))
@@ -17,7 +16,7 @@ class Community(models.Model):
 
     class Meta:
         verbose_name = _("ชุมชน")
-        verbose_name_plural = _("05. ชุมชน") # ปรับลำดับการแสดงใน Admin
+        verbose_name_plural = _("05. ชุมชน")
         ordering = ['name']
 
 
@@ -30,7 +29,7 @@ class Category(models.Model):
 
     class Meta:
         verbose_name = _("หมวดหมู่กิจกรรม")
-        verbose_name_plural = _("06. หมวดหมู่กิจกรรม") # ปรับลำดับ
+        verbose_name_plural = _("06. หมวดหมู่กิจกรรม")
         ordering = ['name']
 
 class Event(models.Model):
@@ -42,82 +41,84 @@ class Event(models.Model):
     image = models.ImageField(upload_to='events/', blank=True, null=True, verbose_name=_("รูปภาพกิจกรรม"))
     category = models.ForeignKey(
         Category,
-        on_delete=models.SET_NULL,
+        on_delete=models.SET_NULL, # ถ้าลบ Category, Event จะยังมีอยู่แต่ไม่มี category
         null=True,
-        blank=True,
-        related_name='events_in_category',
+        blank=True, # อนุญาตให้ Event ไม่มี Category ได้
+        related_name='events_in_category', # ชื่อสำหรับอ้างอิงจาก Category ไป Event
         verbose_name=_("หมวดหมู่")
     )
     community = models.ForeignKey(
         Community,
-        on_delete=models.SET_NULL,
+        on_delete=models.SET_NULL, # ถ้าลบ Community, Event จะยังมีอยู่แต่ไม่มี community
         null=True,
-        blank=True,
-        related_name='events_in_community',
+        blank=True, # อนุญาตให้ Event ไม่มี Community ได้
+        related_name='events_in_community', # ชื่อสำหรับอ้างอิงจาก Community ไป Event
         verbose_name=_("จัดโดยชุมชน (ถ้ามี)")
     )
     organizer = models.ForeignKey(
         User,
-        on_delete=models.CASCADE,
-        related_name='organized_events',
+        on_delete=models.CASCADE, # ถ้าลบ User, Event ที่ User นี้จัดจะถูกลบไปด้วย
+        related_name='organized_events', # ชื่อสำหรับอ้างอิงจาก User ไป Event ที่จัด
         verbose_name=_("ผู้จัดกิจกรรม")
     )
     max_attendees = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("จำนวนผู้เข้าร่วมสูงสุด (ถ้ามี)"))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("วันที่สร้าง"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("วันที่สร้าง")) # วันที่สร้าง Event record
 
     def __str__(self):
         return self.title
 
     @property
     def attendee_count(self):
+        # นับเฉพาะคนที่ 'attending' จริงๆ
         return self.attendees.filter(status='attending').count()
+    # ทำให้แสดงใน Admin ได้สวยงาม
     attendee_count.fget.short_description = _("จำนวนผู้เข้าร่วม")
 
 
     class Meta:
         verbose_name = _("กิจกรรม")
-        verbose_name_plural = _("07. กิจกรรม") # ปรับลำดับ
-        ordering = ['-date', '-time']
+        verbose_name_plural = _("07. กิจกรรม")
+        ordering = ['-date', '-time'] # เรียงจากกิจกรรมล่าสุดไปเก่าสุด
 
 
 class Attendance(models.Model):
     STATUS_CHOICES = [
         ('attending', _('เข้าร่วม')),
         ('interested', _('สนใจ')),
-        ('not_attending', _('ไม่เข้าร่วม'))
+        ('not_attending', _('ไม่เข้าร่วม')) # อาจจะเพิ่มสถานะนี้ถ้าต้องการให้ user ยกเลิกได้ชัดเจน
     ]
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='attendees', verbose_name=_("กิจกรรม"))
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_attendances', verbose_name=_("ผู้ใช้"))
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='attending', verbose_name=_("สถานะ"))
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='interested', verbose_name=_("สถานะ")) # อาจจะเริ่มที่ interested ก่อน
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("วันที่บันทึกสถานะ"))
 
     class Meta:
-        unique_together = ('event', 'user')
+        unique_together = ('event', 'user') # ผู้ใช้คนหนึ่งสามารถมีสถานะต่อ Event หนึ่งได้เพียงสถานะเดียว
         verbose_name = _("การเข้าร่วมกิจกรรม")
-        verbose_name_plural = _("08. การเข้าร่วมกิจกรรม") # ปรับลำดับ
+        verbose_name_plural = _("08. การเข้าร่วมกิจกรรม")
         ordering = ['-created_at']
 
     def __str__(self):
         return f'{self.user.username} - {self.event.title} - {self.get_status_display()}'
 
-# --- Model ใหม่/ปรับปรุงสำหรับโปรไฟล์ผีเสื้อ ---
+
 class ButterflyType(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name=_("ชื่อประเภทผีเสื้อ"))
-    name_en = models.CharField(max_length=100, unique=True, blank=True, null=True, verbose_name=_("ชื่อประเภท (ภาษาอังกฤษสำหรับ Slug)"))
-    slug = models.SlugField(max_length=120, unique=True, blank=True, help_text=_("สร้างอัตโนมัติจากชื่อภาษาอังกฤษ ถ้าเว้นว่าง"))
+    name = models.CharField(max_length=100, unique=True, verbose_name=_("ชื่อประเภทผีเสื้อ (ไทย)"))
+    name_en = models.CharField(max_length=100, unique=True, blank=True, null=True, verbose_name=_("ชื่อประเภท (อังกฤษสำหรับ Slug)"))
+    slug = models.SlugField(max_length=120, unique=True, blank=True, help_text=_("สร้างอัตโนมัติจากชื่อภาษาอังกฤษ (ถ้ามี) หรือชื่อภาษาไทย"))
     description = models.TextField(verbose_name=_("คำอธิบายสั้นๆ (แสดงใน Quiz Result)"))
     long_description = models.TextField(blank=True, null=True, verbose_name=_("คำอธิบายแบบยาว (แสดงใน Quiz Result)"))
     strengths = models.TextField(blank=True, null=True, verbose_name=_("จุดแข็ง (แสดงใน Quiz Result)"))
-    # weaknesses = models.TextField(blank=True, null=True, verbose_name=_("จุดที่ควรพัฒนา (ถ้ามี)")) # Optional
+    # weaknesses = models.TextField(blank=True, null=True, verbose_name=_("จุดที่ควรพัฒนา (ถ้ามี)"))
 
     icon_image = models.ImageField(upload_to='butterfly_type_icons/', blank=True, null=True, verbose_name=_("รูปไอคอน (แสดงทั่วไป)"))
     result_image = models.ImageField(upload_to='butterfly_results/', blank=True, null=True, verbose_name=_("รูปภาพผลลัพธ์หลัก (แสดงใน Quiz Result)"))
 
     theme_colors_description = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("สี/ธีมที่สื่อถึง (คำอธิบาย)"))
-    # สำหรับ Dynamic Theme ใน template (Optional)
-    # theme_color_start = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Tailwind BG Gradient From (เช่น purple-50)"))
-    # theme_color_end = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Tailwind BG Gradient To (เช่น pink-50)"))
-    # text_color = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Tailwind Text Color (เช่น purple-700)"))
+    # สำหรับ Dynamic Theme ใน template (Optional, ถ้าจะใช้ต้อง uncomment และเพิ่มใน template ด้วย)
+    theme_color_start = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Tailwind BG Gradient From (เช่น purple-50)"))
+    theme_color_end = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Tailwind BG Gradient To (เช่น pink-50)"))
+    text_color = models.CharField(max_length=30, blank=True, null=True, verbose_name=_("Tailwind Text Color (เช่น purple-700)"))
 
 
     def __str__(self):
@@ -125,26 +126,28 @@ class ButterflyType(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
+            # ถ้ามี name_en ให้ใช้ name_en เป็น source, ถ้าไม่มีให้ใช้ name (ไทย)
             source_for_slug = self.name_en if self.name_en else self.name
-            self.slug = slugify(source_for_slug)
+            # slugify จะจัดการภาษาไทยได้ระดับหนึ่ง แต่ถ้าต้องการ slug ที่เป็นภาษาอังกฤษล้วนๆ การมี name_en จะดีกว่า
+            self.slug = slugify(source_for_slug, allow_unicode=True if not self.name_en else False)
         super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = _("ประเภทผีเสื้อ")
-        verbose_name_plural = _("01. ประเภทผีเสื้อ (Quiz)")
+        verbose_name_plural = _("01. ประเภทผีเสื้อ (Quiz)") # ลำดับใน Admin
         ordering = ['name']
 
 
 class Question(models.Model):
     text = models.TextField(verbose_name=_("ข้อความคำถาม"))
     order = models.PositiveIntegerField(default=0, help_text=_("ลำดับการแสดงผลของคำถาม (เลขน้อยแสดงก่อน)"), verbose_name=_("ลำดับ"))
-    # image = models.ImageField(upload_to='quiz_question_images/', blank=True, null=True, verbose_name=_("รูปภาพประกอบคำถาม")) # Optional
+    # image = models.ImageField(upload_to='quiz_question_images/', blank=True, null=True, verbose_name=_("รูปภาพประกอบคำถาม"))
 
     def __str__(self):
         return f"Q{self.order}: {self.text[:60]}..."
 
     class Meta:
-        ordering = ['order']
+        ordering = ['order'] # สำคัญมากเพื่อให้คำถามเรียงตามลำดับใน Quiz
         verbose_name = _("คำถาม Quiz")
         verbose_name_plural = _("02. คำถาม Quiz")
 
@@ -154,24 +157,26 @@ class Choice(models.Model):
     text = models.CharField(max_length=255, verbose_name=_("ข้อความตัวเลือก"))
     points_to_type = models.ForeignKey(
         ButterflyType,
-        on_delete=models.SET_NULL, # หรือ models.PROTECT ถ้าไม่ต้องการให้ลบ Type ที่มี Choice ผูกอยู่
-        null=True,
-        blank=False, # บังคับให้ต้องเลือกตอนสร้างผ่าน Admin
+        on_delete=models.SET_NULL,
+        null=True, # อนุญาตให้เป็น null ถ้า ButterflyType ถูกลบ
+        blank=False, # **สำคัญ: บังคับให้ต้องเลือก ButterflyType ตอนสร้าง Choice ผ่าน Admin**
+                     # ถ้าไม่เลือก จะไม่รู้ว่า Choice นี้ให้คะแนนแก่ Type ไหน
         related_name="defining_choices",
         verbose_name=_("ให้คะแนนแก่ประเภทผีเสื้อ")
     )
-    # image = models.ImageField(upload_to='quiz_choice_images/', blank=True, null=True, verbose_name=_("รูปภาพประกอบตัวเลือก")) # Optional
+    # image = models.ImageField(upload_to='quiz_choice_images/', blank=True, null=True, verbose_name=_("รูปภาพประกอบตัวเลือก"))
 
     def __str__(self):
-        type_name = self.points_to_type.name if self.points_to_type else "N/A"
+        type_name = self.points_to_type.name if self.points_to_type else _("ไม่ได้ระบุประเภท")
         return f"{self.text} (-> {type_name})"
 
     class Meta:
         verbose_name = _("ตัวเลือกคำตอบ Quiz")
         verbose_name_plural = _("03. ตัวเลือกคำตอบ Quiz")
+        # อาจจะเพิ่ม ordering ตาม text หรือตาม question ถ้าต้องการ
+        # ordering = ['question__order', 'text']
 
 
-# UserProfile Model (ปรับปรุง)
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', verbose_name=_("ผู้ใช้"))
     bio = models.TextField(blank=True, null=True, verbose_name=_("เกี่ยวกับฉัน"))
@@ -179,9 +184,9 @@ class UserProfile(models.Model):
 
     assigned_butterfly_type = models.ForeignKey(
         ButterflyType,
-        on_delete=models.SET_NULL,
+        on_delete=models.SET_NULL, # ถ้า ButterflyType ถูกลบ, field นี้ใน UserProfile จะเป็น NULL
         null=True,
-        blank=True,
+        blank=True, # อนุญาตให้ UserProfile ยังไม่มี assigned_butterfly_type (เช่น ยังไม่ได้ทำ quiz)
         related_name='users_of_this_type',
         verbose_name=_("ประเภทผีเสื้อที่ได้รับ")
     )
@@ -195,16 +200,17 @@ class UserProfile(models.Model):
         verbose_name_plural = _("04. โปรไฟล์ผู้ใช้")
 
 
-# Signal เพื่อสร้าง UserProfile อัตโนมัติเมื่อ User ถูกสร้างหรืออัปเดต
+# Signal เพื่อสร้าง UserProfile อัตโนมัติเมื่อ User ถูกสร้าง
 @receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
-    if created:
+def create_user_profile(sender, instance, created, **kwargs):
+    if created: # ตรวจสอบว่า User object นี้เพิ่งถูกสร้างขึ้นหรือไม่
         UserProfile.objects.create(user=instance)
-    else:
-        # ในกรณีที่ User ถูกอัปเดต อาจจะไม่จำเป็นต้อง save() profile ทุกครั้ง
-        # เว้นแต่จะมีการเปลี่ยนแปลงข้อมูลใน User ที่ส่งผลต่อ Profile
-        # แต่เพื่อความปลอดภัย (เผื่อ Profile อาจถูกลบไป) การใช้ get_or_create ก็เป็นทางเลือกที่ดี
-        profile, profile_created = UserProfile.objects.get_or_create(user=instance)
-        if not profile_created:
-            # ถ้า profile มีอยู่แล้ว อาจจะไม่ต้องทำอะไร หรืออาจจะ save ถ้ามีการอัปเดตบางอย่างที่เชื่อมโยง
-            pass # instance.profile.save() # อาจจะไม่จำเป็นเสมอไป
+
+# Signal เพื่อ save UserProfile เมื่อ User object ถูก save (อาจจะไม่จำเป็นเสมอไปถ้าไม่มีการอัปเดตที่เชื่อมโยง)
+# @receiver(post_save, sender=User)
+# def save_user_profile(sender, instance, **kwargs):
+#    try:
+#        instance.profile.save()
+#    except UserProfile.DoesNotExist:
+        # กรณีที่ profile อาจจะยังไม่ได้ถูกสร้าง (เช่น ถ้าปิด signal create_user_profile ชั่วคราว)
+#        UserProfile.objects.create(user=instance)
