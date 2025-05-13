@@ -1,20 +1,32 @@
-**วัตถุประสงค์ของโค้ดนี้:**
+ไฟล์นี้ปรับแต่งอินเทอร์เฟซการดูแลระบบ Django สำหรับโมเดล
 
-โค้ดนี้ทำการลงทะเบียนโมเดลต่างๆ ที่ได้สร้างขึ้นมา (Community, Category, Event, Attendance, UserProfile) กับ Django admin interface ทำให้เราสามารถจัดการข้อมูลของโมเดลเหล่านี้ผ่านหน้าเว็บ admin ได้อย่างง่ายดาย นอกจากนี้ยังมีการปรับแต่งการแสดงผลและการค้นหาข้อมูลในหน้า admin อีกด้วย
-
-**ภาพรวมของการทำงาน:**
-
-โค้ดนี้ทำงานโดยการใช้ @admin.register() decorator เพื่อเชื่อมโยงแต่ละโมเดลกับคลาส ModelAdmin ที่กำหนดเอง คลาสเหล่านี้จะกำหนดลักษณะการทำงานและการแสดงผลของโมเดลนั้นๆ ใน admin interface เช่น:
-
-- list_display: กำหนดฟิลด์ที่จะแสดงในรายการของออบเจ็กต์
-- search_fields: กำหนดฟิลด์ที่สามารถใช้ในการค้นหาออบเจ็กต์
-- list_filter: กำหนดฟิลด์ที่สามารถใช้ในการกรองออบเจ็กต์
-- date_hierarchy: เปิดใช้งานการนำทางตามวันที่ (สำหรับโมเดล Event)
-
-**คำแนะนำการใช้งาน:**
-
-1. ตรวจสอบให้แน่ใจว่าโมเดลของคุณถูกสร้างขึ้นแล้ว: โค้ดนี้อ้างอิงถึงโมเดล Category, Event, Attendance, UserProfile, และ Community คุณต้องมีไฟล์ models.py ที่กำหนดโครงสร้างของโมเดลเหล่านี้ก่อน
-2. วางโค้ดลงใน admin.py: คัดลอกโค้ดที่คุณให้มาและวางลงในไฟล์ admin.py ภายในแอปพลิเคชัน Django ของคุณ
-3. เข้าสู่ Django admin interface: เปิดเว็บเบราว์เซอร์ของคุณและไปที่ /admin/ ต่อท้าย URL หลักของเว็บไซต์ Django ของคุณ (เช่น http://127.0.0.1:8000/admin/)
-4. ล็อกอินด้วยบัญชี superuser: คุณจะต้องล็อกอินด้วยบัญชีผู้ดูแลสูงสุด (superuser) ที่คุณสร้างขึ้นระหว่างการตั้งค่า Django
-5. จัดการโมเดลของคุณ: เมื่อล็อกอินแล้ว คุณจะเห็นส่วนต่างๆ สำหรับแต่ละโมเดลที่คุณลงทะเบียนไว้ (Communities, Categories, Events, Attendances, User Profiles) คุณสามารถคลิกที่แต่ละส่วนเพื่อดู เพิ่ม แก้ไข และลบข้อมูลได้ตามที่คุณกำหนดค่าไว้ในคลาส ModelAdmin
+- CommunityAdmin: ลงทะเบียนโมเดล Community กับไซต์ผู้ดูแลระบบ
+    - แสดง name ในมุมมองรายการและอนุญาตให้ค้นหาด้วย name
+- CategoryAdmin: ลงทะเบียนโมเดล Category
+    - แสดง name และอนุญาตให้ค้นหาด้วย name
+- EventAdmin: ลงทะเบียนโมเดล Event
+    - ปรับแต่งการแสดงผลในรายการเพื่อแสดงรายละเอียดสำคัญของกิจกรรม เช่น title, date, time, location, category, community, organizer, และ attendee_count
+    - เพิ่มตัวกรองสำหรับ date, category, และ community
+    - เปิดใช้งานการค้นหาด้วย title, description, และ location
+    - เพิ่มลำดับชั้นตามวันที่สำหรับการนำทาง
+- AttendanceAdmin: ลงทะเบียนโมเดล Attendance
+    - แสดง user, event, status, และ created_at
+    - อนุญาตให้กรองด้วย status และ created_at
+    - เปิดใช้งานการค้นหาด้วย user__username และ event__title
+- UserProfileAdmin: ลงทะเบียนโมเดล UserProfile
+    - แสดง user, ชื่อผู้ใช้, assigned_butterfly_type, quiz_completed_at, และ bio (เวอร์ชันย่อ)
+    - อนุญาตให้กรองด้วย assigned_butterfly_type
+    - เปิดใช้งานการค้นหาด้วยรายละเอียดผู้ใช้และ bio
+    - ทำให้ quiz_completed_at เป็นแบบอ่านอย่างเดียว
+    - ใช้ autocomplete_fields สำหรับ user และ assigned_butterfly_type เพื่อการเลือกที่ง่ายขึ้น
+    - จัดระเบียบฟิลด์เป็น fieldsets รวมถึงส่วนที่ยุบได้สำหรับข้อมูลควิซ
+- ChoiceInline: กำหนดอินเทอร์เฟซผู้ดูแลระบบแบบอินไลน์สำหรับโมเดล Choice ทำให้สามารถจัดการได้โดยตรงภายในหน้าผู้ดูแลระบบของ Question
+- QuestionAdmin: ลงทะเบียนโมเดล Question
+    - แสดง text (เวอร์ชันย่อ) ของคำถามและ order
+    - ทำให้ order แก้ไขได้ในมุมมองรายการ
+    - รวม ChoiceInline เพื่อจัดการตัวเลือก
+    - อนุญาตให้ค้นหาด้วย text ของคำถาม
+- ButterflyTypeAdmin: ลงทะเบียนโมเดล ButterflyType
+    - แสดง name, name_en, slug, และ theme_colors_description (เวอร์ชันย่อ)
+    - ใช้ prepopulated_fields เพื่อสร้าง slug โดยอัตโนมัติจาก name_en
+    - เปิดใช้งานการค้นหาในฟิลด์ข้อความต่างๆ
