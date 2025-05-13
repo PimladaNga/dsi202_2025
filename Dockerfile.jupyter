@@ -1,31 +1,35 @@
 # Dockerfile.jupyter
+
+# 1. Base Image
 FROM python:3.9-slim
 
-# Install system dependencies
+# 2. Set Environment Variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV JUPYTER_ENABLE_LAB=yes
+
+# 3. Install system dependencies (ถ้า Jupyter หรือ library อื่นๆ ต้องการ)
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    # เพิ่ม system dependencies อื่นๆ ที่จำเป็นสำหรับ Jupyter หรือ library ใน requirements_jupyter.txt
     && rm -rf /var/lib/apt/lists/*
 
-# Set the repository root as the working directory
+# 4. Set Work Directory in Container
 WORKDIR /usr/src/app
 
-# Copy the requirements file for caching
-COPY requirements_jupyter.txt .
-
-# Install Python dependencies using the updated requirements file
+# 5. Copy and Install Python Dependencies for Jupyter
+# Copy requirements file first
+COPY ./requirements_jupyter.txt /usr/src/app/requirements_jupyter.txt
 RUN pip install --no-cache-dir -r requirements_jupyter.txt
 
-# Copy the entire project into the container
-COPY . .
+# 6. Copy the entire project code (เพื่อให้ Jupyter สามารถเข้าถึง models และโค้ด Django ได้)
+COPY . /usr/src/app/
 
-# Change the working directory to the Django project folder (where manage.py is located)
-WORKDIR /usr/src/app/myproject
-
-# Expose port 8888 for JupyterLab
+# 7. Expose Jupyter port
 EXPOSE 8888
 
-# Launch django-extensions shell_plus with notebook support,
-# passing additional arguments to allow running as root,
-# bind to all interfaces, and disable the token.
-CMD ["python", "manage.py", "shell_plus", "--notebook", "--", "--allow-root", "--ip=0.0.0.0", "--NotebookApp.token="]
+# 8S. Command to start JupyterLab
+# working_dir ใน docker-compose.yml คือ /usr/src/app/myproject
+# ดังนั้น jupyter lab จะเริ่มใน /usr/src/app/myproject
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''"]

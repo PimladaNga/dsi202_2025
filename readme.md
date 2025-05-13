@@ -95,8 +95,8 @@
 
 1.  **Clone Repository:**
     ```bash
-    git clone <URL_ของ_repository_คุณ>
-    cd <ชื่อ_repository_ของคุณ>
+    git clone <https://github.com/PimladaNga/dsi202_2025>
+    cd <dsi202_2025>
     ```
 
 2.  **สร้างและ Activate Virtual Environment (แนะนำ):**

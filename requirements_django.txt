@@ -1,12 +1,23 @@
-Django==4.2
-psycopg2-binary==2.9.6
-django-extensions==3.2.3
+# requirements_django.txt
 
-# For exploring data in notebooks (if you prefer to install them here rather than at runtime)
-jupyterlab==4.0.2
+# Core Django
+Django==4.2.13 # หรือเวอร์ชันล่าสุดของ Django 4.2.x ที่เสถียร
+psycopg2-binary>=2.9.0 # สำหรับเชื่อมต่อ PostgreSQL
 
-# Optionally, add other libraries:
-# tailwindcss, whitenoise, or anything else you use in your project
-Pillow
+# Django Allauth (สำหรับ Social Login - Google)
+django-allauth>=0.61.0 # หรือเวอร์ชันล่าสุดที่รองรับ Django 4.2
+PyJWT>=2.0.0 # Dependency ของ allauth หรือ DRF ที่อาจจะจำเป็น
+requests>=2.25.0
+cryptography>=3.4.0
+
+# Django REST framework (ถ้าคุณใช้ API)
 djangorestframework>=3.14.0
-django-widget-tweaks
+
+# Django Extensions (เครื่องมือช่วยพัฒนา)
+django-extensions>=3.2.0
+
+# Django Widget Tweaks (สำหรับปรับแต่งฟอร์มใน template)
+django-widget-tweaks>=1.5.0
+
+# Pillow (สำหรับจัดการรูปภาพ เช่น ImageField)
+Pillow>=10.0.0

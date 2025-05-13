@@ -23,6 +23,8 @@ urlpatterns = [
 
     # URL สำหรับ myapp (หน้าเว็บหลัก)
     path('', include('myapp.urls')),
+    
+    path('accounts/', include('allauth.urls'))
 ]
 
 if settings.DEBUG:

@@ -1,9 +1,12 @@
-Django==4.2
-django-extensions==3.2.3
-psycopg2-binary==2.9.6
-jupyterlab==2.2.9
-notebook==6.4.12
-jupyter_server==1.11.2
-traitlets==5.1.1
-djangorestframework
+# requirements_jupyter.txt
 
+# JupyterLab และส่วนประกอบหลัก
+jupyterlab==4.0.12 # หรือเวอร์ชันล่าสุดที่เสถียร
+notebook>=6.4.0
+jupyter_server>=1.11.0
+ipykernel # จำเป็นสำหรับการรัน Python code ใน Jupyter
+
+# Django (ถ้าต้องการ import โค้ด Django project เข้ามาใน Notebook)
+Django==4.2.13 # ใช้เวอร์ชันเดียวกับ Django service เพื่อความเข้ากันได้
+django-extensions>=3.2.0 # อาจจะมีประโยชน์ถ้าใช้ runscript หรือ shell_plus ใน Notebook
+psycopg2-binary>=2.9.0 # ถ้า Notebook ต้องเชื่อมต่อฐานข้อมูล Django โดยตรง

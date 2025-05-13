@@ -34,6 +34,7 @@ TIME_ZONE = 'Asia/Bangkok'
 USE_I18N = True
 USE_L10N = True 
 USE_TZ = True
+SITE_ID = 1
 
 # Application definition
 
@@ -48,6 +49,13 @@ INSTALLED_APPS = [
     'myapp',
     'rest_framework',
     'widget_tweaks',
+
+    'django.contrib.sites', # Required by allauth
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google', # For Google OAuth
 ]
 
 MIDDLEWARE = [
@@ -58,7 +66,36 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
+
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        # For each OAuth based provider, either add a ``SocialApp``
+        # (``socialaccount`` app) containing the client_id and secret
+        # or list them here:
+        # 'APP': {
+        #     'client_id': 'YOUR_GOOGLE_CLIENT_ID',
+        #     'secret': 'YOUR_GOOGLE_CLIENT_SECRET',
+        #     'key': '' # Not needed for Google
+        # },
+        'SCOPE': [ # ขอบเขตข้อมูลที่ขอจาก Google
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': { # พารามิเตอร์เพิ่มเติมตอนขอ authorization
+            'access_type': 'online',
+        }
+    }
+}
 
 ROOT_URLCONF = 'myproject.urls'
 
@@ -146,3 +183,15 @@ LOGIN_URL = 'login'  # ชื่อ URL pattern ของหน้า login ข�
 LOGIN_REDIRECT_URL = 'home' # หลังจาก login สำเร็จ ให้ไปที่หน้า home
 LOGOUT_REDIRECT_URL = 'home' # หลังจาก logout สำเร็จ ให้ไปที่หน้า home
 STATIC_URL = '/static/'
+
+# Redirects
+LOGIN_REDIRECT_URL = '/' # หรือ URL ที่ต้องการให้ไปหลังล็อกอินสำเร็จ
+LOGOUT_REDIRECT_URL = '/' # หรือ URL ที่ต้องการให้ไปหลังล็อกเอาท์
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+
+# Email settings (ถ้าต้องการให้มีการยืนยันอีเมล หรือเปลี่ยนอีเมล)
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_LOGIN_METHODS = {'email'} # ให้ล็อกอินด้วยอีเมล (หลังจากได้มาจาก Google)
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_ALLOW_REGISTRATION = False # ปิดการลงทะเบียนแบบปกติ
