@@ -1,0 +1,38 @@
+ไฟล์นี้ประกอบด้วยการตั้งค่าสำหรับโปรเจกต์ Django ของ (myproject)
+
+- การกำหนดค่าพื้นฐาน:
+    - BASE_DIR: กำหนดไดเรกทอรีฐานของโปรเจกต์
+    - SECRET_KEY: คีย์ลับสำหรับการลงนามแบบเข้ารหัส
+    - DEBUG: ตั้งค่าเป็น True (ควรเป็น False ใน production)
+    - ALLOWED_HOSTS: รายการของโฮสต์/โดเมนที่อนุญาต (ปัจจุบันว่างเปล่า)
+- การตั้งค่าสากลและภาษา (Internationalization & Localization):
+    - LANGUAGE_CODE: ตั้งค่าเป็น 'th' (ไทย) ในตอนแรก จากนั้นเปลี่ยนเป็น 'en-us'
+    - TIME_ZONE: ตั้งค่าเป็น 'Asia/Bangkok' ในตอนแรก จากนั้นเปลี่ยนเป็น 'UTC'
+    - USE_I18N, USE_L10N, USE_TZ: เปิดใช้งานการรองรับหลายภาษา การปรับให้เข้ากับท้องถิ่น และการรองรับเขตเวลา
+- แอปที่ติดตั้ง (Installed Apps):
+    - รวมแอปมาตรฐานของ Django (django.contrib.admin, django.contrib.auth ฯลฯ)
+    - เพิ่มแอปของบุคคลที่สาม: django_extensions, rest_framework, widget_tweaks
+    - รวมแอปที่คุณสร้างขึ้น: myapp
+- มิดเดิลแวร์ (Middleware):
+    - แสดงรายการคลาสมิดเดิลแวร์ที่โปรเจกต์ใช้
+- การกำหนดค่า URL (URL Configuration):
+    - ROOT_URLCONF: ชี้ไปที่ 'myproject.urls' ซึ่งเป็นไฟล์กำหนดค่า URL หลักของโปรเจกต์
+- เทมเพลต (Templates):
+    - กำหนดค่า Django template engine
+    - ระบุไดเรกทอรีเทมเพลต รวมถึง templates ระดับโปรเจกต์ และ myapp/templates ระดับแอป
+- WSGI Application:
+    - WSGI_APPLICATION: ชี้ไปที่ WSGI application ที่ใช้โดยเซิร์ฟเวอร์เว็บสำหรับการพัฒนาและ production
+- ฐานข้อมูล (Database):
+    - กำหนดค่าให้ใช้ SQLite (django.db.backends.sqlite3) โดยไฟล์ฐานข้อมูลคือ db.sqlite3 ใน BASE_DIR
+- การตรวจสอบรหัสผ่าน (Password Validation)
+    - แสดงรายการตัวตรวจสอบรหัสผ่านที่ใช้ตรวจสอบความแข็งแกร่งของรหัสผ่านผู้ใช้
+- ไฟล์สถิตและไฟล์มีเดีย (Static and Media Files):
+    - STATIC_URL: คำนำหน้า URL สำหรับไฟล์สถิต (เช่น /static/)
+    - MEDIA_URL: คำนำหน้า URL สำหรับไฟล์มีเดียที่ผู้ใช้อัปโหลด (เช่น /media/)
+    - MEDIA_ROOT: พาธ tuyệt đối ของระบบไฟล์ไปยังไดเรกทอรีที่จะเก็บไฟล์มีเดีย
+- Default Primary Key:
+    - DEFAULT_AUTO_FIELD: ตั้งค่าเป็น django.db.models.BigAutoField
+- การตั้งค่าการเข้าสู่ระบบ/ออกจากระบบ (Login/Logout Settings):
+    - LOGIN_URL: ชื่อของรูปแบบ URL สำหรับหน้าเข้าสู่ระบบ ('login')
+    - LOGIN_REDIRECT_URL: ตำแหน่งที่จะเปลี่ยนเส้นทางผู้ใช้หลังจากเข้าสู่ระบบสำเร็จ ('home')
+    - LOGOUT_REDIRECT_URL: ตำแหน่งที่จะเปลี่ยนเส้นทางผู้ใช้หลังจากออกจากระบบ ('home')

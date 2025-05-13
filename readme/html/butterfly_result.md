@@ -1,0 +1,21 @@
+เทมเพลต Django นี้แสดงผลลัพธ์ของ "แบบทดสอบค้นหาผีเสื้อ"
+
+- สืบทอดจาก (Extends): myapp/base.html
+- โหลด (Loads): แท็กเทมเพลต static
+- หัวเรื่อง (Title): "ผลลัพธ์ผีเสื้อของคุณ: {{ butterfly_type.name }} - {{ block.super }}"
+- เนื้อหา (Content):
+    - พื้นหลังของส่วนนี้ใช้สีธีมจากออบเจ็กต์ butterfly_type แบบไดนามิก (from-{{ butterfly_type.theme_color_start|default:'purple-50' }} to-{{ butterfly_type.theme_color_end|default:'pink-50' }})
+    - การแสดงผลลัพธ์:
+        - แสดง result_image หรือ icon_image ของ butterfly_type หากไม่มีทั้งสองอย่าง จะแสดงรูปภาพเริ่มต้น (default_butterfly_result.png)
+        - แสดงชื่อประเภทผีเสื้อ: "คุณคือ "{{ butterfly_type.name }}"!"
+        - แสดง description (คำอธิบายสั้นๆ) ของประเภทผีเสื้อ
+        - หากมี long_description (คำอธิบายแบบยาว) จะแสดงในส่วนแยกต่างหาก
+        - หากมี strengths (จุดแข็ง) จะแสดง
+        - หากมี theme_colors_description (คำอธิบายสี/ธีม) จะแสดง
+    - ปุ่มดำเนินการ (Action Buttons):
+        - ปุ่ม "ดูโปรไฟล์ของฉัน" ลิงก์ไปยังโปรไฟล์ของผู้ใช้
+        - ปุ่ม "แชร์ผลลัพธ์นี้" ซึ่งเรียกใช้ฟังก์ชัน JavaScript shareQuizResult()
+        - ปุ่ม "ทำแบบทดสอบใหม่" ลิงก์กลับไปยังหน้าควิซ
+- JavaScript (shareQuizResult function):
+    - ใช้ Web Share API (navigator.share) หากมี เพื่อแชร์ผลลัพธ์ควิซ (ชื่อเรื่อง ข้อความ URL)
+    - มี alert สำรองหาก Web Share API ไม่รองรับ
