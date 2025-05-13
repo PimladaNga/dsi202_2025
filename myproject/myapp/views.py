@@ -179,10 +179,6 @@ def edit_profile(request):
 def butterfly_quiz_view(request):
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
 
-    # ถ้าเคยทำ quiz และมีผลลัพธ์แล้ว ให้ redirect ไปหน้าผลลัพธ์เลย
-    if user_profile.assigned_butterfly_type and user_profile.quiz_completed_at:
-        return redirect(reverse('butterfly_result_page_slug', kwargs={'slug': user_profile.assigned_butterfly_type.slug}))
-
     questions = Question.objects.prefetch_related('choices').order_by('order').all()
     page_title = "แบบทดสอบค้นหาผีเสื้อของคุณ"
     error_message = None # กำหนดค่าเริ่มต้น error_message

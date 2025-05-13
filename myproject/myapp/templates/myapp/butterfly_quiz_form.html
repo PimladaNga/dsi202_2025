@@ -9,7 +9,7 @@
     <div class="container mx-auto px-4">
         <div class="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl">
             <div class="text-center mb-8">
-                <img src="{% static 'myapp/images/butterfly_quiz_header.png' %}" alt="ค้นหาผีเสื้อในตัวคุณ" class="w-24 h-24 mx-auto mb-4 rounded-full object-cover">
+                <img src="{% static 'images/butterfly_quiz_banner.png' %}" alt="ค้นหาผีเสื้อในตัวคุณ" class="w-24 h-24 mx-auto mb-4 rounded-full object-cover">
                 <h1 class="text-3xl sm:text-4xl font-bold text-purple-700">{{ page_title|default:"แบบทดสอบค้นหาผีเสื้อของคุณ" }}</h1>
                 {% if questions %}
                     <p class="text-gray-600 mt-2">ตอบคำถามสั้นๆ เพียง {{ questions|length }} ข้อ เพื่อค้นพบว่าคุณคือผีเสื้อประเภทไหน!</p>
