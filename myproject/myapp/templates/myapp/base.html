@@ -4,44 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Chum-Chon Link{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script> {# Tailwind CSS CDN #}
-    {# Google Fonts - Prompt #}
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-    {% load static %} {# โหลด static tag ของ Django #}
+    {% load static %}
+    {% load socialaccount %}
+    
 
     <style>
         body {
-            font-family: 'Prompt', sans-serif; /* กำหนดฟอนต์ Prompt ให้กับทั้งหน้า */
+            font-family: 'Prompt', sans-serif;
         }
 
-        /* CSS สำหรับการตัดข้อความหลายบรรทัด */
         .truncate_2_lines {
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
-            -webkit-box-orient: vertical; /* จำเป็นสำหรับ -webkit-line-clamp */
-            -webkit-line-clamp: 2;     /* จำนวนบรรทัดที่ต้องการแสดง */
-            line-clamp: 2;             /* Standard property (เพื่อความเข้ากันได้ในอนาคต) */
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
         }
-
-        /* (Optional) ถ้าต้องการสไตล์เพิ่มเติมที่ไม่สามารถทำได้ง่ายๆ ด้วย Tailwind Utility Classes */
-        /* ตัวอย่าง: ถ้าต้องการให้ Navbar มีความสูงคงที่ที่แน่นอน */
-        /* nav { min-height: 64px; } */
     </style>
 
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col antialiased"> {# เพิ่ม antialiased เพื่อให้ฟอนต์ดูนุ่มนวลขึ้น #}
+<body class="bg-gray-100 min-h-screen flex flex-col antialiased">
 
     <nav class="bg-purple-600 shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between h-16 sm:h-20"> {# กำหนดความสูงให้ Navbar #}
+            <div class="flex items-center justify-between h-16 sm:h-20">
                 <div class="flex items-center">
                     <a href="{% url 'home' %}" class="flex items-center space-x-2 flex-shrink-0">
-                        {# !!! สำคัญ: เปลี่ยน 'images/whitelogo.png' เป็น path โลโก้สีขาวของคุณ ถ้ามี !!! #}
-                        {# ถ้าโลโก้เดิม (logo.png) ดูดีบนพื้นหลังสีม่วง ก็ใช้ path เดิมได้ #}
                         <img src="{% static 'images/whitelogo.png' %}" alt="Chum-Chon Link Logo" class="h-9 w-9 sm:h-10 sm:w-10">
                         <span class="text-xl sm:text-2xl font-bold text-white">Chum-Chon Link</span>
                     </a>
@@ -67,10 +61,11 @@
                             {% endif %}
                             โปรไฟล์
                         </a>
-                        <a href="{% url 'logout' %}" class="bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-150 shadow-sm hover:shadow-md">ออกจากระบบ</a>
+                        <a href="{% url 'account_logout' %}" class="bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-150 shadow-sm hover:shadow-md">ออกจากระบบ</a>
                     {% else %}
-                        <a href="{% url 'login' %}" class="text-purple-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150">เข้าสู่ระบบ</a>
-                        <a href="{% url 'signup' %}" class="bg-white hover:bg-gray-100 text-purple-700 font-semibold px-4 py-2 rounded-md text-sm shadow-sm hover:shadow-md transition-all duration-150">สมัครสมาชิก</a>
+                        <a href="{% provider_login_url 'google' %}" class="text-white font-semibold px-4 py-2 rounded-md text-sm shadow-sm hover:shadow-md transition-all duration-150 flex items-center">
+                            สมัครสมาชิก
+                        </a>
                     {% endif %}
                 </div>
 
@@ -104,13 +99,14 @@
                         {% endif %}
                         โปรไฟล์
                     </a>
-                    <a href="{% url 'logout' %}" class="block w-full text-center bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white px-4 py-2.5 rounded-md text-base font-medium transition-all duration-150 shadow-sm hover:shadow-md">ออกจากระบบ</a>
+                    <a href="{% url 'account_logout' %}" class="block w-full text-center bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white px-4 py-2.5 rounded-md text-base font-medium transition-all duration-150 shadow-sm hover:shadow-md">ออกจากระบบ</a>
                 </div>
                 {% else %}
                 <hr class="my-2 border-purple-400 opacity-50">
                 <div class="px-3 py-2 space-y-2">
-                    <a href="{% url 'login' %}" class="block w-full text-center bg-purple-500 hover:bg-purple-400 active:bg-purple-500 text-white px-4 py-2.5 rounded-md text-base font-medium transition-colors duration-150">เข้าสู่ระบบ</a>
-                    <a href="{% url 'signup' %}" class="block w-full text-center bg-white hover:bg-gray-100 text-purple-700 font-semibold px-4 py-2.5 rounded-md text-base shadow-sm hover:shadow-md transition-all duration-150">สมัครสมาชิก</a>
+                    <a href="{% provider_login_url 'google' %}" class="block w-full text-center text-white font-semibold px-4 py-2.5 rounded-md text-base shadow-sm hover:shadow-md transition-all duration-150">
+                        Login with google
+                    </a>
                 </div>
                 {% endif %}
             </div>
@@ -149,7 +145,6 @@
             menuIconClose.classList.toggle('hidden', expanded);
         });
 
-        // Optional: Close mobile menu when clicking outside of it
         document.addEventListener('click', function(event) {
             const isClickInsideNav = hamburgerButton.contains(event.target) || mobileMenu.contains(event.target);
             if (!isClickInsideNav && !mobileMenu.classList.contains('hidden')) {
