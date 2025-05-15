@@ -1,5 +1,6 @@
 {% extends 'myapp/base.html' %}
 {% load static %}
+{% load socialaccount %} 
 
 {% block title %}Chum-Chon Link - หน้าแรก{% endblock %}
 
@@ -78,21 +79,24 @@
         {# --- ส่วน Hero Banner (สำหรับผู้ที่ยังไม่ได้ล็อกอิน) --- #}
         <section class="bg-gradient-to-b from-white to-purple-100 pt-12 pb-16 md:pt-16 md:pb-20">
             <div class="container mx-auto px-4">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16">
-                    <div class="md:w-3/5 lg:w-1/2 text-center md:text-left">
-                        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-5 leading-tight">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
+                    <div class="md:w-3/5 lg:w-1/2 text-center md:text-left md:mr-4"> 
+                        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-5 leading-tight md:leading-normal"> {# หรือ leading ที่คุณปรับไว้ #}
                             แพลตฟอร์มของ<span class="text-purple-600">ผู้คน</span>—<br class="hidden xs:block sm:hidden md:block">สถานที่ซึ่ง<span class="text-purple-600">ความสนใจ</span><br class="hidden xs:block sm:hidden md:block">เปลี่ยนเป็น<span class="text-purple-600">มิตรภาพ</span>
                         </h1>
-                        <p class="text-lg text-gray-700 mb-8 leading-relaxed max-w-xl">
+                        <p class="text-lg text-gray-700 mb-8 leading-relaxed max-w-xl"> {# หรือ leading ที่คุณปรับไว้ #}
                             ไม่ว่าความสนใจของคุณจะเป็นอะไร ตั้งแต่การเดินป่า อ่านหนังสือ ไปจนถึงการสร้างเครือข่ายและแบ่งปันทักษะ Chum-Chon Link คือพื้นที่สำหรับทุกคนที่มีใจเดียวกัน กิจกรรมใหม่ๆ เกิดขึ้นทุกวัน—สมัครเลยแล้วมาสนุกด้วยกัน!
                         </p>
                         <div class="flex flex-col sm:flex-row sm:items-center gap-4 justify-center md:justify-start">
-                            <a href="{% url 'signup' %}" class="inline-block bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105 text-lg">
+                            {# ----- ปุ่ม "เข้าร่วม Chum-Chon Link" ที่จะแก้ไข ----- #}
+                            <a href="{% provider_login_url 'google' %}" class="inline-block bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105 text-lg">
                                 เข้าร่วม Chum-Chon Link
                             </a>
-                            <a href="{% url 'signup' %}?next={% url 'butterfly_quiz' %}" class="inline-block bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105 text-lg">
+                        
+                            <a href="{% url 'butterfly_quiz' %}"  {# <--- ชี้ไปที่ URL ของ Quiz โดยตรง #}
+                               class="inline-block bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105 text-lg">
                                 🦋 ค้นหาผีเสื้อในตัวคุณ
-                            </a>
+                            </a>                   
                         </div>
                         <p class="text-xs text-gray-500 mt-3 text-center md:text-left">
                             (การค้นหาผีเสื้อในตัวคุณ จะพาไปสมัครสมาชิกก่อน หากยังไม่มีบัญชี)

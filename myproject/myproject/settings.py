@@ -179,7 +179,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Login settings
-LOGIN_URL = 'login'  # ชื่อ URL pattern ของหน้า login ของคุณ
+LOGIN_URL = 'account_login'  # ชื่อ URL pattern ของหน้า login ของคุณ
 LOGIN_REDIRECT_URL = 'home' # หลังจาก login สำเร็จ ให้ไปที่หน้า home
 LOGOUT_REDIRECT_URL = 'home' # หลังจาก logout สำเร็จ ให้ไปที่หน้า home
 STATIC_URL = '/static/'
@@ -195,3 +195,10 @@ ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_LOGIN_METHODS = {'email'} # ให้ล็อกอินด้วยอีเมล (หลังจากได้มาจาก Google)
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_ALLOW_REGISTRATION = False # ปิดการลงทะเบียนแบบปกติ
+
+# การตั้งค่าเพิ่มเติมสำหรับ django-allauth (ตรวจสอบว่ามีอยู่และเหมาะสม)
+ACCOUNT_AUTHENTICATION_METHOD = "email"  # หรือ "username_email" หรือ "username"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+SOCIALACCOUNT_AUTO_SIGNUP = True  # สร้างบัญชีให้อัตโนมัติเมื่อ login ผ่าน social ครั้งแรก
+ACCOUNT_LOGOUT_ON_GET = False  # เพื่อให้มีหน้ายืนยัน logout (ตามที่เราทำไปแล้ว)
