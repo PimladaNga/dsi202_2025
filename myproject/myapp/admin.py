@@ -43,8 +43,8 @@ class AttendanceAdmin(admin.ModelAdmin):
 # --- UserProfileAdmin (รวมเป็นอันเดียว) ---
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'get_username_display', 'assigned_butterfly_type', 'quiz_completed_at', 'bio_short')
-    list_filter = ('assigned_butterfly_type',)
+    list_display = ('user', 'get_username_display', 'assigned_butterfly_type','is_pro_member', 'pro_membership_end_date', 'quiz_completed_at', 'bio_short')
+    list_filter = ('assigned_butterfly_type', 'is_pro_member')
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'bio')
     # readonly_fields ทำให้แก้ไขไม่ได้โดยตรงจากหน้าแก้ไข UserProfile ปกติ เหมาะกับ field ที่มาจาก User model หรือถูกจัดการโดยระบบ
     readonly_fields = ('quiz_completed_at',)
@@ -56,6 +56,10 @@ class UserProfileAdmin(admin.ModelAdmin):
         }),
         (_('Butterfly Quiz Information'), { # ใช้ gettext_lazy สำหรับ section title
             'fields': ('assigned_butterfly_type', 'quiz_completed_at'),
+            'classes': ('collapse',), # ทำให้ section นี้ย่อได้
+        }),
+        (_('Pro Membership Information'), {
+            'fields': ('is_pro_member', 'pro_membership_start_date', 'pro_membership_end_date'),
             'classes': ('collapse',), # ทำให้ section นี้ย่อได้
         }),
     )

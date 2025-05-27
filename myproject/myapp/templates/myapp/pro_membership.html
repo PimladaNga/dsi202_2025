@@ -1,0 +1,68 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"สมัครสมาชิกแบบโปร" }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<section class="py-8 md:py-12 bg-gradient-to-b from-purple-100 to-pink-100 min-h-[calc(100vh-150px)] flex items-center">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-purple-700 mb-4">{{ page_title }}</h1>
+
+            {% if error_message %}
+                <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+                    <span class="font-medium">เกิดข้อผิดพลาด!</span> {{ error_message }}
+                </div>
+            {% endif %}
+
+            {% if user_profile.is_pro_member %}
+                <div class="p-4 bg-green-100 text-green-700 rounded-md mb-6">
+                    คุณเป็นสมาชิกโปรแล้ว!
+                    {% if user_profile.pro_membership_end_date %}
+                        สิทธิ์ของคุณจะหมดอายุในวันที่: {{ user_profile.pro_membership_end_date|date:"d M Y H:i" }}
+                    {% endif %}
+                </div>
+                <a href="{% url 'user_profile' %}" class="inline-block bg-gray-500 hover:bg-gray-600 text-white font-semibold px-8 py-3 rounded-lg shadow-md">
+                    กลับไปที่โปรไฟล์
+                </a>
+            {% else %}
+                {# ส่วนแสดง QR Code และรายละเอียดการชำระเงิน #}
+                <p class="text-gray-700 mb-2">
+                    กรุณาสแกน QR Code ด้านล่างนี้เพื่อชำระเงินค่าสมาชิกโปร จำนวน <strong>{{ membership_price|floatformat:2 }} บาท</strong>
+                </p>
+                <p class="text-xs text-gray-500 mb-4">
+                    (เมื่อชำระเงินเรียบร้อยแล้ว กรุณากดปุ่ม "ยืนยันการสมัครสมาชิก" ด้านล่าง)
+                </p>
+
+                {% if qr_image_base64 %}
+                    <div class="my-6 flex justify-center">
+                        <img src="data:image/png;base64,{{ qr_image_base64 }}" alt="PromptPay QR Code" class="border shadow-lg">
+                    </div>
+                    {% comment %} <p class="text-xs text-gray-400 break-all">Payload: {{ promptpay_payload }}</p> {% endcomment %}
+                {% elif not error_message %}
+                    <p class="text-yellow-600 my-6">กำลังสร้าง QR Code, กรุณารอสักครู่...</p>
+                {% endif %}
+
+                <ul class="list-disc list-inside text-left text-gray-600 mb-8 space-y-2 mt-6">
+                    <li>เข้าถึงเนื้อหาพิเศษเฉพาะสมาชิกโปร</li>
+                    <li>สร้างกิจกรรมได้โดดเด่นกว่าใคร</li>
+                    <li>ได้รับ Badge "Pro Member" บนโปรไฟล์</li>
+                    <li>ไม่มีโฆษณา (ถ้ามี)</li>
+                </ul>
+                
+                <form method="post" action="{% url 'pro_membership' %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white font-semibold px-10 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 text-lg"
+                            {% if not qr_image_base64 or error_message %}disabled title="ไม่สามารถยืนยันได้หาก QR Code ไม่แสดงผลหรือมีข้อผิดพลาด"{% endif %}>
+                        ยืนยันการสมัครสมาชิก
+                    </button>                            
+                </form>
+                <p class="mt-6 text-sm text-gray-500">
+                    หมายเหตุ: การคลิกปุ่ม "ยืนยันการสมัครสมาชิก" จะถือว่าคุณได้ชำระเงินแล้วและจะได้รับสิทธิ์โปร (ยังไม่มีการตรวจสอบการชำระเงินอัตโนมัติในระบบสาธิตนี้)
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

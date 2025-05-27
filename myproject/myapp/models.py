@@ -192,6 +192,10 @@ class UserProfile(models.Model):
     )
     quiz_completed_at = models.DateTimeField(null=True, blank=True, verbose_name=_("วันที่ทำ Quiz เสร็จสิ้น"))
 
+    is_pro_member = models.BooleanField(default=False, verbose_name=_("เป็นสมาชิกโปร"))
+    pro_membership_start_date = models.DateTimeField(null=True, blank=True, verbose_name=_("วันที่เริ่มสมาชิกโปร"))
+    pro_membership_end_date = models.DateTimeField(null=True, blank=True, verbose_name=_("วันที่หมดอายุสมาชิกโปร"))
+
     def __str__(self):
         return self.user.username
 

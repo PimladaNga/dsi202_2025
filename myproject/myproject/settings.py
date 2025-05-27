@@ -197,8 +197,6 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_ALLOW_REGISTRATION = False # ปิดการลงทะเบียนแบบปกติ
 
 # การตั้งค่าเพิ่มเติมสำหรับ django-allauth (ตรวจสอบว่ามีอยู่และเหมาะสม)
-ACCOUNT_AUTHENTICATION_METHOD = "email"  # หรือ "username_email" หรือ "username"
-ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 SOCIALACCOUNT_AUTO_SIGNUP = True  # สร้างบัญชีให้อัตโนมัติเมื่อ login ผ่าน social ครั้งแรก
 ACCOUNT_LOGOUT_ON_GET = False  # เพื่อให้มีหน้ายืนยัน logout (ตามที่เราทำไปแล้ว)

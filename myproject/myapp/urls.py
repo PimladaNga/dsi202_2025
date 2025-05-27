@@ -20,6 +20,7 @@ urlpatterns = [
 
     path('quiz/', views.butterfly_quiz_view, name='butterfly_quiz'),
     path('quiz/result/<slug:slug>/', views.butterfly_result_view, name='butterfly_result_page_slug'),
-
     # path('dashboard/', views.dashboard_page, name='dashboard'), # ตรวจสอบว่ามี view นี้จริง หรือ comment ไว้ก่อนถ้ายังไม่ได้สร้าง
+    
+    path('pro-membership/', views.pro_membership_view, name='pro_membership')
 ]

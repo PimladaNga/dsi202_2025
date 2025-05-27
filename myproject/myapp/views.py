@@ -11,6 +11,11 @@ from django.contrib.auth import login
 from django.http import HttpResponse
 from functools import wraps
 from .models import Event, Community, Attendance
+from django.utils import timezone # สำหรับ pro_membership_end_date
+from datetime import timedelta # สำหรับ pro_membership_end_date
+from django.core.exceptions import PermissionDenied
+from .promptpay_utils import generate_promptpay_qr_payload, generate_qr_code_image_base64, InvalidInputError
+import base64
 
 from .models import (
     Event, Category, Attendance, UserProfile, Community,
@@ -153,6 +158,25 @@ def user_profile(request, username=None):
         'is_own_profile': is_own_profile    # Boolean เพื่อตรวจสอบใน template
     }
     return render(request, 'myapp/user_profile.html', context)
+
+def pro_member_required(view_func):
+    @wraps(view_func) # ควร import wraps จาก functools
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated or not getattr(request.user, 'profile', None) or not request.user.profile.is_pro_member:
+            # อาจจะ redirect ไปหน้า pro_membership หรือแสดง error
+            # raise PermissionDenied 
+            return redirect('pro_membership') # หรือแสดงหน้าว่าต้องเป็นโปร
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+# การใช้งานใน view
+# from .decorators import pro_member_required # ถ้าสร้างไฟล์แยก
+
+@login_required
+@pro_member_required # <--- เพิ่ม decorator นี้
+def my_pro_feature_view(request):
+    # ... logic สำหรับ pro feature ...
+    return render(request, 'myapp/pro_feature_template.html')
 
 @login_required
 def edit_profile(request):
@@ -310,6 +334,24 @@ def signup(request):
     }
     return render(request, 'myapp/signup.html', context)
 
+@login_required
+def pro_membership_view(request):
+    user_profile = request.user.profile
+    if request.method == 'POST':
+        # สมมติว่าการ "สมัคร" คือการตั้งค่า is_pro_member = True
+        # และกำหนดวันหมดอายุ (เช่น 30 วันนับจากนี้)
+        user_profile.is_pro_member = True
+        user_profile.pro_membership_start_date = timezone.now()
+        user_profile.pro_membership_end_date = timezone.now() + timedelta(days=30) # ตัวอย่าง: ให้สิทธิ์ 30 วัน
+        user_profile.save()
+        # อาจจะเพิ่ม message บอกว่าสมัครสำเร็จ
+        return redirect('user_profile') # กลับไปหน้าโปรไฟล์
+
+    context = {
+        'page_title': 'สมัครสมาชิกแบบโปร',
+    }
+    return render(request, 'myapp/pro_membership.html', context)
+
 # --- REST Framework API ViewSets ---
 from rest_framework import viewsets
 from rest_framework.serializers import ModelSerializer
@@ -333,6 +375,65 @@ class UserProfileSerializer(ModelSerializer):
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
+
+# --- กำหนดค่าสำหรับ PromptPay ของคุณ ---
+# !!! 중요: เปลี่ยนเป็นเบอร์ PromptPay หรือเลข NID/Tax ID ของผู้รับเงินจริง !!!
+# เพื่อการทดสอบ คุณอาจจะใช้เบอร์/เลขสมมติไปก่อนได้
+YOUR_PROMPTPAY_ID_TYPE = "mobile"  # หรือ "nid"
+YOUR_PROMPTPAY_ID = "0812345678"   # เบอร์มือถือ 10 หลัก หรือ เลข NID/Tax ID 13 หลัก
+PRO_MEMBERSHIP_PRICE = 50.00       # ราคาสมาชิกโปร (ตัวอย่าง)
+
+@login_required
+def pro_membership_view(request):
+    user_profile = request.user.profile
+    qr_image_base64 = None
+    error_message = None
+    promptpay_payload = None
+
+    if request.method == 'POST':
+        # ในขั้นตอนนี้ เรายังคง "เชื่อ" ว่าผู้ใช้จ่ายเงินแล้วเมื่อเขากดยืนยัน
+        # ในระบบจริง คุณจะต้องมีวิธีตรวจสอบการชำระเงินที่ซับซ้อนกว่านี้
+        user_profile.is_pro_member = True
+        user_profile.pro_membership_start_date = timezone.now()
+        user_profile.pro_membership_end_date = timezone.now() + timedelta(days=30) # ตัวอย่าง: 30 วัน
+        user_profile.save()
+        # messages.success(request, "คุณได้อัปเกรดเป็นสมาชิกโปรสำเร็จแล้ว!") # Optional
+        return redirect('user_profile')
+    else:
+        # GET request: สร้าง QR code
+        if not user_profile.is_pro_member:
+            try:
+                if YOUR_PROMPTPAY_ID_TYPE == "mobile":
+                    promptpay_payload = generate_promptpay_qr_payload(
+                        mobile=YOUR_PROMPTPAY_ID,
+                        amount=PRO_MEMBERSHIP_PRICE,
+                        one_time=True # เหมาะสำหรับจ่ายครั้งเดียว
+                    )
+                elif YOUR_PROMPTPAY_ID_TYPE == "nid":
+                    promptpay_payload = generate_promptpay_qr_payload(
+                        nid=YOUR_PROMPTPAY_ID,
+                        amount=PRO_MEMBERSHIP_PRICE,
+                        one_time=True
+                    )
+                # else: # เพิ่ม ewallet_id ที่นี่ถ้าต้องการ
+
+                if promptpay_payload:
+                    qr_image_base64 = generate_qr_code_image_base64(promptpay_payload)
+
+            except InvalidInputError as e:
+                error_message = f"เกิดข้อผิดพลาดในการสร้างข้อมูล QR Code: {e}"
+            except Exception as e:
+                error_message = f"เกิดข้อผิดพลาดที่ไม่คาดคิด: {e}"
+        
+    context = {
+        'page_title': 'สมัครสมาชิกแบบโปร' if not user_profile.is_pro_member else 'สถานะสมาชิกโปร',
+        'qr_image_base64': qr_image_base64,
+        'promptpay_payload': promptpay_payload, # ส่ง payload ไปแสดงผลด้วย (เผื่อ debug)
+        'membership_price': PRO_MEMBERSHIP_PRICE,
+        'error_message': error_message,
+        'user_profile': user_profile # ส่ง user_profile ไปด้วย เพื่อเช็ค is_pro_member ใน template
+    }
+    return render(request, 'myapp/pro_membership.html', context)
 
 @login_required # ตัวอย่าง: ถ้าต้องการให้เฉพาะผู้ที่ login แล้วเข้าถึงได้
 def dashboard_page(request):

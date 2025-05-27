@@ -66,6 +66,11 @@
                         <a href="{% provider_login_url 'google' %}" class="text-white font-semibold px-4 py-2 rounded-md text-sm shadow-sm hover:shadow-md transition-all duration-150 flex items-center">
                             สมัครสมาชิก
                         </a>
+                    {% if not user.profile.is_pro_member %}
+                        <a href="{% url 'pro_membership' %}" class="px-3 lg:px-4 py-2 rounded-md text-sm font-medium text-yellow-300 hover:text-white hover:bg-purple-500 transition-all duration-150">
+                            ✨ Go Pro!
+                        </a>
+                    {% endif %}
                     {% endif %}
                 </div>
 
